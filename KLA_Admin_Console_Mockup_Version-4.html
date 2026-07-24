@@ -1,0 +1,1444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>PDM → ENOVIA Integration Admin Console</title>
+  <style>
+    :root{
+      --bg:#f4f6f8;
+      --panel:#ffffff;
+      --muted:#6b7280;
+      --text:#111827;
+      --border:#e5e7eb;
+      --sidebar:#1f2937;
+      --sidebarHover:#374151;
+      --accent:#38bdf8;
+      --shadow:0 1px 3px rgba(0,0,0,.12);
+      --success:#16a34a;
+      --failed:#dc2626;
+      --partial:#f59e0b;
+      --running:#2563eb;
+      --unknown:#6b7280;
+      --warning:#d97706;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:Segoe UI, Arial, sans-serif;background:var(--bg);color:var(--text)}
+    .sidebar{width:285px;background:var(--sidebar);color:#fff;position:fixed;top:0;bottom:0;padding:18px 16px;overflow:auto}
+    .brand{display:flex;align-items:center;gap:10px;margin-bottom:18px;padding:6px 8px}
+    .brand .dot{width:12px;height:12px;border-radius:999px;background:var(--accent)}
+    .brand h2{margin:0;font-size:16px;letter-spacing:.2px}
+    .nav{display:flex;flex-direction:column;gap:4px}
+    .nav a,.nav .nav-label{
+      display:flex;align-items:center;gap:10px;color:#e5e7eb;text-decoration:none;
+      padding:10px 10px;border-radius:10px;outline:none;font-size:13px
+    }
+    .nav .nav-label{color:#bfdbfe;text-transform:uppercase;font-size:11px;letter-spacing:.5px;margin-top:6px;cursor:default}
+    .nav a:hover{background:var(--sidebarHover)}
+    .nav a.active{background:#0b1220;color:#fff;border:1px solid rgba(56,189,248,.35)}
+    .nav .lvl2{padding-left:26px;font-size:12px}
+    .main{margin-left:305px;padding:18px 18px 60px}
+    .topbar{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:16px}
+    .title h1{margin:0;font-size:22px}
+    .title p{margin:4px 0 0;color:var(--muted);font-size:12px}
+    .cards{display:grid;grid-template-columns:repeat(4,minmax(180px,1fr));gap:14px;margin:12px 0 18px}
+    .cards.cards-3{grid-template-columns:repeat(3,minmax(180px,1fr));}
+    .card{background:var(--panel);padding:14px;border-radius:14px;box-shadow:var(--shadow);border:1px solid var(--border)}
+    .card h3{margin:0;font-size:12px;color:var(--muted);font-weight:600}
+    .card .kpi{margin-top:8px;font-size:22px;font-weight:800;letter-spacing:.2px}
+    .panel{background:var(--panel);border:1px solid var(--border);border-radius:14px;box-shadow:var(--shadow);padding:12px;margin-bottom:16px}
+    .panel-head{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;margin-bottom:10px}
+    .panel-head.column{display:flex;flex-direction:column;align-items:flex-start;gap:12px}
+    .panel-head h2{margin:0;font-size:14px}
+    .panel-head .sub{margin-top:4px;color:var(--muted);font-size:12px}
+    .panel-title-row{display:flex;align-items:center}
+    .panel-filter-row{display:flex;width:100%}
+    .controls{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end}
+    .controls label{font-size:12px;color:var(--muted);display:flex;flex-direction:column;gap:4px}
+    .controls input,.controls select,.controls button{border:1px solid var(--border);border-radius:10px;padding:8px 10px;font-size:12px;background:#fff;min-width:160px}
+    .controls button{cursor:pointer;min-width:auto}
+    .controls button:hover{border-color:#cbd5e1}
+    
+    .filter-break{flex-basis:100%;height:0}
+    .filter-title{flex-basis:100%;font-size:11px;font-weight:700;color:#374151;text-transform:uppercase;letter-spacing:.4px;margin-top:2px}
+    .btn-primary{background:#2563eb!important;color:#fff!important;border-color:#2563eb!important}
+    .btn-secondary{background:#f8fafc!important;color:#111827!important}
+.table-wrap{overflow:auto;border:1px solid var(--border);border-radius:12px}
+    table{width:100%;border-collapse:separate;border-spacing:0;min-width:1100px;background:#fff}
+    thead th{position:sticky;top:0;background:#f3f4f6;color:#111827;font-size:12px;text-align:left;padding:10px;border-bottom:1px solid var(--border);white-space:nowrap}
+    tbody td{font-size:12px;padding:10px;border-bottom:1px solid var(--border);vertical-align:top}
+    tbody tr:hover{background:#f9fafb}
+    .link{color:#2563eb;cursor:pointer;text-decoration:underline}
+    .mono{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace}
+    .badge{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;border:1px solid transparent;font-weight:700;font-size:11px;letter-spacing:.2px;white-space:nowrap}
+    .badge .pill{width:7px;height:7px;border-radius:999px}
+    .status-success{color:var(--success);border-color:rgba(22,163,74,.25);background:rgba(22,163,74,.10)}
+    .status-success .pill{background:var(--success)}
+    .status-failed{color:var(--failed);border-color:rgba(220,38,38,.25);background:rgba(220,38,38,.10)}
+    .status-failed .pill{background:var(--failed)}
+    .status-partial{color:var(--partial);border-color:rgba(245,158,11,.30);background:rgba(245,158,11,.12)}
+    .status-partial .pill{background:var(--partial)}
+    .status-running{color:var(--running);border-color:rgba(37,99,235,.25);background:rgba(37,99,235,.10)}
+    .status-running .pill{background:var(--running)}
+    .status-unknown{color:var(--unknown);border-color:rgba(107,114,128,.30);background:rgba(107,114,128,.10)}
+    .status-unknown .pill{background:var(--unknown)}
+    .pager{display:flex;flex-wrap:nowrap;gap:10px;align-items:center;justify-content:space-between;margin-top:10px}
+    .pager .meta{font-size:12px;color:var(--muted)}
+    .pager .buttons{display:flex;gap:8px;align-items:center}
+    .pager button{border:1px solid var(--border);background:#fff;border-radius:10px;padding:6px 10px;font-size:12px;cursor:pointer}
+    .pager button:disabled{opacity:.45;cursor:not-allowed}
+    .view{display:none}
+    .view.active{display:block}
+    .summary-grid{display:grid;grid-template-columns:repeat(2,minmax(260px,1fr));gap:14px}
+    .bullet{color:var(--muted);font-size:13px;line-height:1.55;margin:6px 0}
+    .muted{color:var(--muted)}
+    .modal-backdrop{position:fixed;inset:0;background:rgba(17,24,39,.55);display:none;align-items:center;justify-content:center;padding:18px;z-index:50}
+    .modal-backdrop.show{display:flex}
+    .modal{width:min(980px,96vw);max-height:90vh;overflow:hidden;background:#fff;border-radius:18px;border:1px solid rgba(255,255,255,.12);box-shadow:0 24px 70px rgba(0,0,0,.35)}
+    .modal.modal-sm{width:min(430px,96vw)}
+    .modal-head{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;border-bottom:1px solid var(--border)}
+    .modal-head h3{margin:0;font-size:14px}
+    .modal-actions{display:flex;gap:8px}
+    .modal-actions button{border:1px solid var(--border);background:#fff;border-radius:10px;padding:8px 10px;font-size:12px;cursor:pointer}
+    .modal-actions button:hover{border-color:#cbd5e1}
+    .modal-body{padding:12px 14px;overflow:auto;max-height:calc(90vh - 54px)}
+    pre{margin:0;padding:12px;border-radius:14px;border:1px solid var(--border);background:#0b1220;color:#e5e7eb;overflow:auto}
+    .mt-8{margin-top:8px} .mt-12{margin-top:12px}
+    @media (max-width:1180px){.cards,.cards.cards-3,.summary-grid{grid-template-columns:repeat(2,minmax(160px,1fr))}}
+    @media (max-width:980px){.sidebar{position:static;width:auto}.main{margin-left:0}table{min-width:950px}}
+  </style>
+</head>
+<body>
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="dot"></div>
+      <h2>KLA PDM Integration</h2>
+    </div>
+    <nav class="nav" id="nav">
+      <a href="#create-part" data-view="create-part" class="active">Create Part</a>
+      <a href="#dashroll" data-view="dashroll">Dashroll</a>
+      <a href="#upload" data-view="upload">Upload to Enovia</a>
+      <a href="#backflow" data-view="backflow">Backflow</a>
+      <a href="#search" data-view="search">Search</a>
+      <a href="#master-data" data-view="master-data">Master Data</a>
+      <a href="#higher-dash" data-view="higher-dash" class="lvl2">Get Higher Dash</a>
+      <a href="#get-co" data-view="get-co" class="lvl2">Enovia Get CO</a>
+      <a href="#enovia-projects" data-view="enovia-projects" class="lvl2">Enovia Projects</a>
+      <a href="#enovia-manufacturers" data-view="enovia-manufacturers" class="lvl2">Enovia Manufacturers</a>
+      <a href="#part-type-logs" data-view="part-type-logs" class="lvl2">Part Types</a>
+      <a href="#edoc-projects" data-view="edoc-projects" class="lvl2">EDOC Projects</a>
+       <a href="#manage-master-data" data-view="manage-master-data">Manage Master Data</a>
+      <a href="#manage-part-types" data-view="manage-part-types" class="lvl2">Part Types</a>
+      <a href="#manage-edoc-projects" data-view="manage-edoc-projects" class="lvl2">EDOC Projects</a>
+      <a href="#users" data-view="users" class="lvl2">Users</a>
+    </nav>
+  </aside>
+
+  <main class="main">
+    <section class="view active" id="view-create-part" aria-label="Create Part">
+      <div class="topbar"><div class="title"><h1>Create Part</h1><p>Transactions details, part line items, and component logs.</p></div></div>
+      <div class="cards" role="group" aria-label="Create Part KPIs">
+        <div class="card"><h3>Total Parts Created</h3><div class="kpi" id="kpiTotalParts">0</div></div>
+        <div class="card"><h3>Total Success</h3><div class="kpi" id="kpiSuccess">0</div></div>
+        <div class="card"><h3>Total Partial</h3><div class="kpi" id="kpiPartial">0</div></div>
+        <div class="card"><h3>Total Failed</h3><div class="kpi" id="kpiFailed">0</div></div>
+      </div>
+      <div class="panel">
+        <div class="panel-head column">
+          <div class="panel-title-row"><h2>Part Transactions</h2></div>
+          <div class="panel-filter-row">
+            <div class="controls">
+<label>From Date<input id="txnServerFrom" type="date" /></label>
+              <label>To Date<input id="txnServerTo" type="date" /></label>
+              <label>Status<select id="txnServerStatus"><option value="">All</option><option value="SUCCESS">SUCCESS</option><option value="PARTIAL">PARTIAL</option><option value="FAILED">FAILED</option><option value="RUNNING">RUNNING</option></select></label>
+              <button id="txnServerSearchBtn" class="btn-primary">Search</button>
+              <div class="filter-break"></div>
+<label>Search<input id="txnSearch" type="text" placeholder="Transaction ID / Requester / Host / Error…" /></label>
+              <label>Status<select id="txnStatus"><option value="">All</option><option value="SUCCESS">SUCCESS</option><option value="PARTIAL">PARTIAL</option><option value="FAILED">FAILED</option><option value="RUNNING">RUNNING</option></select></label>
+<button id="txnReset" class="btn-secondary">Reset All</button>
+            </div>
+          </div>
+        </div>
+        <div class="table-wrap"><table><thead><tr>
+          <th>Transaction ID</th><th>Requester</th><th>Host</th><th>CAD Primary</th><th>Action (Enovia/EDOC)</th><th>No of Parts</th><th>Status</th><th>Error</th><th>Request JSON</th><th>Response JSON</th><th>Request Timestamp</th><th>Response Timestamp</th><th>Log File</th><th>Execution Total Time</th>
+        </tr></thead><tbody id="txnServerTbody"></tbody><tbody id="txnTbody"></tbody></table></div>
+        <div class="pager"><div class="meta" id="txnMeta">Showing 0–0 of 0</div><div class="buttons"><button id="txnPrev">Prev</button><div class="meta"><span id="txnPage">1</span> / <span id="txnPages">1</span></div><button id="txnNext">Next</button></div></div>
+      </div>
+      <div class="panel">
+        <div class="panel-head"><div><h2>Part Transaction Details</h2><div class="sub">Detailed instance result rows sent under each create-part request.</div></div><div class="controls"><label>Search<input id="detailSearch" type="text" placeholder="Part Number / File / Project / Error…" /></label><label>Status<select id="detailStatus"><option value="">All</option><option value="SUCCESS">SUCCESS</option><option value="PARTIAL">PARTIAL</option><option value="FAILED">FAILED</option><option value="RUNNING">RUNNING</option></select></label><button id="detailReset">Reset</button></div></div>
+        <div class="table-wrap"><table style="min-width:1050px"><thead><tr><th>Transaction ID</th><th>Instance ID</th><th>Part Number</th><th>File Name</th><th>Project</th><th>MFR</th><th>Enovia Link</th><th>Status</th><th>Error</th></tr></thead><tbody id="detailTbody"></tbody></table></div>
+      </div>
+      <div class="panel">
+        <div class="panel-head"><div><h2>Components Log</h2><div class="sub">Component-level trace for each create-part transaction execution.</div></div><div class="controls"><label>Search<input id="logSearch" type="text" placeholder="Component / Message / Transaction ID…" /></label><label>Status<select id="logStatus"><option value="">All</option><option value="SUCCESS">SUCCESS</option><option value="PARTIAL">PARTIAL</option><option value="FAILED">FAILED</option><option value="RUNNING">RUNNING</option></select></label><button id="logReset">Reset</button></div></div>
+        <div class="table-wrap"><table style="min-width:900px"><thead><tr><th>Transaction ID</th><th>Component</th><th>Status</th><th>Message</th><th>Time Stamp</th></tr></thead><tbody id="logTbody"></tbody></table></div>
+      </div>
+    </section>
+
+    <section class="view" id="view-dashroll" aria-label="Dashroll">
+      <div class="topbar"><div class="title"><h1>Dashroll</h1><p>Dashroll transactions and component-level trace based on the user story.</p></div></div>
+      <div class="cards cards-3">
+        <div class="card"><h3>Total Dashroll Created</h3><div class="kpi" id="dashKpiTotal">0</div></div>
+        <div class="card"><h3>Total Success</h3><div class="kpi" id="dashKpiSuccess">0</div></div>
+        <div class="card"><h3>Total Failed</h3><div class="kpi" id="dashKpiFailed">0</div></div>
+      </div>
+      <div class="panel">
+        <div class="panel-head column">
+          <div class="panel-title-row"><h2>Dashroll Transactions</h2></div>
+          <div class="panel-filter-row">
+            <div class="controls">
+<label>From Date<input id="dashServerFrom" type="date" /></label>
+              <label>To Date<input id="dashServerTo" type="date" /></label>
+              <label>Status<select id="dashServerStatus"><option value="">All</option><option value="SUCCESS">SUCCESS</option><option value="PARTIAL">PARTIAL</option><option value="FAILED">FAILED</option><option value="RUNNING">RUNNING</option></select></label>
+              <button id="dashServerSearchBtn" class="btn-primary">Search</button>
+              <div class="filter-break"></div>
+<label>Search<input id="dashSearch" type="text" placeholder="Transaction ID / Requester / Host / Part Number / Error…" /></label>
+              <label>Status<select id="dashStatus"><option value="">All</option><option value="SUCCESS">SUCCESS</option><option value="FAILED">FAILED</option></select></label>
+              <button id="dashReset" class="btn-secondary">Reset All</button>
+            </div>
+          </div>
+        </div>
+        <div class="table-wrap"><table style="min-width:1500px"><thead><tr>
+          <th>Transaction ID</th><th>Requester</th><th>Host</th><th>CAD Primary</th><th>Part Number</th><th>Revision</th><th>Next Dash</th><th>Description</th><th>Status</th><th>Error</th><th>Request JSON</th><th>Response JSON</th><th>Request Timestamp</th><th>Response Timestamp</th><th>Log File</th><th>Total Time</th>
+        </tr></thead><tbody id="dashServerTbody"></tbody><tbody id="dashTbody"></tbody></table></div>
+        <div class="pager"><div class="meta" id="dashMeta">Showing 0–0 of 0</div><div class="buttons"><button id="dashPrev">Prev</button><div class="meta"><span id="dashPage">1</span> / <span id="dashPages">1</span></div><button id="dashNext">Next</button></div></div>
+      </div>
+      <div class="panel">
+        <div class="panel-head"><div><h2>Component Log</h2><div class="sub">Integration steps across PDM, SAP PI and ENOVIA for dashroll transactions.</div></div><div class="controls"><label>Search<input id="dashLogSearch" type="text" placeholder="Transaction ID / Component / Message…" /></label><label>Status<select id="dashLogStatus"><option value="">All</option><option value="SUCCESS">SUCCESS</option><option value="FAILED">FAILED</option><option value="RUNNING">RUNNING</option></select></label><button id="dashLogReset">Reset</button></div></div>
+        <div class="table-wrap"><table style="min-width:900px"><thead><tr><th>Transaction ID</th><th>Component</th><th>Status</th><th>Message</th><th>Timestamp</th></tr></thead><tbody id="dashLogTbody"></tbody></table></div>
+      </div>
+    </section>
+
+    <section class="view" id="view-upload" aria-label="Upload to Enovia">
+      <div class="topbar"><div class="title"><h1>Upload to Enovia</h1><p>Upload transaction logs with server-side and client-side filtering.</p></div></div>
+      <div class="cards cards-3" role="group" aria-label="Upload to Enovia KPIs">
+        <div class="card"><h3>Total Upload</h3><div class="kpi" id="uploadKpiTotal">0</div></div>
+        <div class="card"><h3>Total Success</h3><div class="kpi" id="uploadKpiSuccess">0</div></div>
+        <div class="card"><h3>Total Failed</h3><div class="kpi" id="uploadKpiFailed">0</div></div>
+      </div>
+      <div class="panel">
+        <div class="panel-head column">
+          <div class="panel-title-row"><h2>Upload to Enovia Transaction</h2></div>
+          <div class="panel-filter-row">
+            <div class="controls">
+<label>From Date<input id="uploadServerFrom" type="date" /></label>
+              <label>To Date<input id="uploadServerTo" type="date" /></label>
+              <label>Status<select id="uploadServerStatus"><option value="">All</option><option value="SUCCESS">SUCCESS</option><option value="PARTIAL">PARTIAL</option><option value="FAILED">FAILED</option><option value="RUNNING">RUNNING</option></select></label>
+              <button id="uploadServerSearchBtn" class="btn-primary">Search</button>
+              <div class="filter-break"></div>
+<label>Search<input id="uploadSearch" type="text" placeholder="Transaction ID / Requester / Host / CAD Identifier / CO Name…" /></label>
+              <label>Status<select id="uploadStatus"><option value="">All</option><option value="SUCCESS">SUCCESS</option><option value="PARTIAL">PARTIAL</option><option value="FAILED">FAILED</option><option value="RUNNING">RUNNING</option></select></label>
+              <button id="uploadReset" class="btn-secondary">Reset All</button>
+            </div>
+          </div>
+        </div>
+        <div class="table-wrap"><table style="min-width:1550px"><thead><tr><th>Transaction ID</th><th>Requester</th><th>Host</th><th>CAD Primary</th><th>CAD Identifier</th><th>CO Name</th><th>No. of Parts</th><th>No. of Files</th><th>Status</th><th>Request JSON</th><th>Response JSON</th><th>Request Timestamp</th><th>Response Timestamp</th><th>Log File</th><th>Total Time</th></tr></thead><tbody id="uploadServerTbody"></tbody><tbody id="uploadTbody"></tbody></table></div>
+        <div class="pager"><div class="meta" id="uploadMeta">Showing 0–0 of 0</div><div class="buttons"><button id="uploadPrev">Prev</button><div class="meta"><span id="uploadPage">1</span> / <span id="uploadPages">1</span></div><button id="uploadNext">Next</button></div></div>
+      </div>
+      <div class="panel">
+        <div class="panel-head"><div><h2>Upload to Enovia Transactions Details</h2><div class="sub">Individual file upload and part result rows for the filtered Upload to Enovia transactions.</div></div></div>
+        <div class="table-wrap"><table style="min-width:1250px"><thead><tr><th>Transaction ID</th><th>Instance ID</th><th>Part Number</th><th>Part Revision</th><th>File Name(s)</th><th>PDM Update Status</th><th>PDM Update Message</th><th>Status</th><th>Message</th></tr></thead><tbody id="uploadDetailTbody"></tbody></table></div>
+      </div>
+      <div class="panel">
+        <div class="panel-head"><div><h2>Component Log</h2><div class="sub">Integration steps across PDM, SAP PI and ENOVIA for upload transactions.</div></div><div class="controls"><label>Search<input id="uploadLogSearch" type="text" placeholder="Transaction ID / Component / Message…" /></label><label>Status<select id="uploadLogStatus"><option value="">All</option><option value="SUCCESS">SUCCESS</option><option value="PARTIAL">PARTIAL</option><option value="FAILED">FAILED</option><option value="RUNNING">RUNNING</option></select></label><button id="uploadLogReset">Reset</button></div></div>
+        <div class="table-wrap"><table style="min-width:900px"><thead><tr><th>Transaction ID</th><th>Component</th><th>Status</th><th>Message</th><th>Timestamp</th></tr></thead><tbody id="uploadLogTbody"></tbody></table></div>
+      </div>
+    </section>
+    <section class="view" id="view-backflow" aria-label="Backflow">
+      <div class="topbar"><div class="title"><h1>Backflow</h1><p>Backflow data with server-side and client-side filtering.</p></div></div>
+      <div class="panel">
+        <div class="panel-head column">
+          <div class="panel-title-row"><h2>Backflow Transactions</h2></div>
+          <div class="panel-filter-row">
+            <div class="controls">
+<label>From Date<input id="backflowServerFrom" type="date" /></label>
+              <label>To Date<input id="backflowServerTo" type="date" /></label>
+              <label>PDM Vault<select id="backflowServerVault"><option value="">All</option><option value="CAD_PRIMARY">CAD_PRIMARY</option><option value="CAD_SECONDARY">CAD_SECONDARY</option><option value="NON_CAD">NON_CAD</option></select></label>
+              <label>PDM Update Status<select id="backflowServerStatus"><option value="">All</option><option value="SUCCESS">SUCCESS</option><option value="FAILED">FAILED</option><option value="RUNNING">RUNNING</option></select></label>
+              <button id="backflowServerSearchBtn" class="btn-primary">Search</button>
+              <div class="filter-break"></div>
+<label>Search<input id="backflowSearch" type="text" placeholder="Part Number / PDM Vault / PDM Update Status…" /></label>
+              <button id="backflowReset" class="btn-secondary">Reset All</button>
+            </div>
+          </div>
+        </div>
+        <div class="table-wrap"><table style="min-width:1250px"><thead><tr><th>ID</th><th>Transaction ID</th><th>Part Name</th><th>PDM Vault</th><th>JSON Data</th><th>Enovia Update TS</th><th>PDM Update TS</th><th>PDM Update Status</th></tr></thead><tbody id="backflowServerTbody"></tbody><tbody id="backflowTbody"></tbody></table></div>
+        <div class="pager"><div class="meta" id="backflowMeta">Showing 0–0 of 0</div><div class="buttons"><button id="backflowPrev">Prev</button><div class="meta"><span id="backflowPage">1</span> / <span id="backflowPages">1</span></div><button id="backflowNext">Next</button></div></div>
+      </div>
+    </section>
+    <section class="view" id="view-search" aria-label="Search">
+      <div class="topbar"><div class="title"><h1>Search</h1><p>Search request logs with server-side and client-side filtering.</p></div></div>
+      <div class="panel">
+        <div class="panel-head column">
+          <div class="panel-title-row"><h2>Search Transactions</h2></div>
+          <div class="panel-filter-row">
+            <div class="controls">
+<label>From Date<input id="searchServerFrom" type="date" /></label>
+              <label>To Date<input id="searchServerTo" type="date" /></label>
+              <button id="searchServerSearchBtn" class="btn-primary">Search</button>
+              <div class="filter-break"></div>
+<label>Search<input id="searchTxnSearch" type="text" placeholder="Transaction ID / Requester / Host / Error…" /></label>
+              <button id="searchTxnReset" class="btn-secondary">Reset All</button>
+            </div>
+          </div>
+        </div>
+        <div class="table-wrap"><table style="min-width:1400px"><thead><tr><th>Transaction ID</th><th>Requester</th><th>Host</th><th>CAD Primary</th><th>No. of Parts</th><th>Status</th><th>Error</th><th>Request JSON</th><th>Request Timestamp</th><th>Response Timestamp</th><th>Log File</th><th>Total Time</th></tr></thead><tbody id="searchServerTbody"></tbody><tbody id="searchTxnTbody"></tbody></table></div>
+        <div class="pager"><div class="meta" id="searchTxnMeta">Showing 0–0 of 0</div><div class="buttons"><button id="searchTxnPrev">Prev</button><div class="meta"><span id="searchTxnPage">1</span> / <span id="searchTxnPages">1</span></div><button id="searchTxnNext">Next</button></div></div>
+      </div>
+      <div class="panel">  
+        <div class="panel-head"><div><h2>Search Component Log</h2><div class="sub">Component-level trace for the currently filtered Search transactions.</div></div><div class="controls"><label>Search<input id="searchLogSearch" type="text" placeholder="Transaction ID / Component / Message…" /></label><label>Status<select id="searchLogStatus"><option value="">All</option><option value="SUCCESS">SUCCESS</option><option value="FAILED">FAILED</option><option value="RUNNING">RUNNING</option></select></label><button id="searchLogReset">Reset</button></div></div>  
+        <div class="table-wrap"><table style="min-width:900px"><thead><tr><th>Transaction ID</th><th>Component</th><th>Status</th><th>Message</th><th>Timestamp</th></tr></thead><tbody id="searchLogTbody"></tbody></table></div>  
+      </div>  
+    </section>
+    <section class="view" id="view-master-data" aria-label="Master Data">
+      <div class="topbar"><div class="title"><h1>Master Data</h1><p>Renamed from Admin Data. Use the child navigation items to review endpoint log history for each master-data feed.</p></div></div>
+      <div class="summary-grid">
+        <div class="panel"><h2 style="margin:0 0 8px">Available log views</h2><p class="bullet">• Get Higher Dash</p><p class="bullet">• Enovia Get CO</p><p class="bullet">• Enovia Projects</p><p class="bullet">• Enovia Manufacturers</p><p class="bullet">• Part Types</p><p class="bullet">• EDOC Projects</p></div>
+        <div class="panel"><h2 style="margin:0 0 8px">Manage Master Data</h2><p class="bullet">• Part Types management</p><p class="bullet">• EDOC Projects maintenance</p><p class="bullet">• Users administration</p></div>
+      </div>
+      <div class="panel mt-12"><div class="sub">Each master-data log screen includes the requested from/to date search, a Search button, browser-side text filtering, and Reset.</div></div>
+    </section>
+	
+	<section class="view" id="view-manage-master-data" aria-label="Manage Master Data">
+      <div class="topbar"><div class="title"><h1>Master Data</h1><p>Renamed from Admin Data. Use the child navigation items to review endpoint log history for each master-data feed.</p></div></div>
+      <div class="summary-grid">
+        <div class="panel"><h2 style="margin:0 0 8px">Available log views</h2><p class="bullet">• Get Higher Dash</p><p class="bullet">• Enovia Get CO</p><p class="bullet">• Enovia Projects</p><p class="bullet">• Enovia Manufacturers</p><p class="bullet">• Part Types</p><p class="bullet">• EDOC Projects</p></div>
+        <div class="panel"><h2 style="margin:0 0 8px">Manage Master Data</h2><p class="bullet">• Part Types management</p><p class="bullet">• EDOC Projects maintenance</p><p class="bullet">• Users administration</p></div>
+      </div>
+      <div class="panel mt-12"><div class="sub">Each master-data log screen includes the requested from/to date search, a Search button, browser-side text filtering, and Reset.</div></div>
+    </section>
+
+    <section class="view" id="view-higher-dash" aria-label="Get Higher Dash">
+      <div class="topbar"><div class="title"><h1>Get Higher Dash</h1><p>Endpoint invocation history and Enovia response details for Get Higher Dash requests.</p></div></div>
+      <div class="panel">
+        <div class="panel-head column">
+          <div class="panel-title-row"><h2>Higher Dash Logs</h2></div>
+          <div class="panel-filter-row"><div class="controls">
+            <label>From Date<input id="hdFrom" type="date" /></label>
+            <label>To Date<input id="hdTo" type="date" /></label>
+            <button id="hdSearchBtn">Search</button>
+            <label>Search box<input id="hdSearch" type="text" placeholder="Transaction ID / Requester / Part Number / Status / Error..." /></label>
+            <button id="hdReset">Reset</button>
+          </div></div>
+        </div>
+        <div class="table-wrap"><table style="min-width:1500px"><thead><tr><th>Transaction ID</th><th>Requester</th><th>CAD Primary</th><th>Part Number</th><th>Part Rev</th><th>Status</th><th>Error</th><th>Request JSON</th><th>Response JSON</th><th>Request Timestamp</th><th>Response Timestamp</th><th>Total Time</th></tr></thead><tbody id="hdTbody"></tbody></table></div>
+      </div>
+    </section>
+    <section class="view" id="view-get-co" aria-label="Enovia Get CO">
+      <div class="topbar"><div class="title"><h1>Enovia Get CO</h1><p>Endpoint invocation history and Enovia response details for Get CO requests.</p></div></div>
+      <div class="panel">
+        <div class="panel-head column">
+          <div class="panel-title-row"><h2>Get CO Logs</h2></div>
+          <div class="panel-filter-row"><div class="controls">
+            <label>From Date<input id="coFrom" type="date" /></label>
+            <label>To Date<input id="coTo" type="date" /></label>
+            <button id="coSearchBtn">Search</button>
+            <label>Search box<input id="coSearch" type="text" placeholder="Transaction ID / Requester / CAD Primary / Status / Error..." /></label>
+            <button id="coReset">Reset</button>
+          </div></div>
+        </div>
+        <div class="table-wrap"><table style="min-width:1350px"><thead><tr><th>Transaction ID</th><th>Requester</th><th>CAD Primary</th><th>Status</th><th>Error</th><th>Request JSON</th><th>Response JSON</th><th>Request Timestamp</th><th>Response Timestamp</th><th>Total Time</th></tr></thead><tbody id="coTbody"></tbody></table></div>
+      </div>
+    </section>
+    <section class="view" id="view-enovia-projects" aria-label="Enovia Projects">
+      <div class="topbar"><div class="title"><h1>Enovia Projects</h1><p>Endpoint invocation history and response status for Enovia Projects master-data syncs.</p></div></div>
+      <div class="panel">
+        <div class="panel-head column">
+          <div class="panel-title-row"><h2>Enovia Projects Logs</h2></div>
+          <div class="panel-filter-row"><div class="controls">
+            <label>From Date<input id="epFrom" type="date" /></label>
+            <label>To Date<input id="epTo" type="date" /></label>
+            <button id="epSearchBtn">Search</button>
+            <label>Search box<input id="epSearch" type="text" placeholder="Transaction ID / Requester / Error…" /></label>
+            <button id="epReset">Reset</button>
+          </div></div>
+        </div>
+        <div class="table-wrap"><table style="min-width:1200px"><thead><tr><th>Transaction ID</th><th>Requester</th><th>CAD Primary</th><th>Project Count</th><th>Status</th><th>Error</th><th>Request Timestamp</th><th>Response Timestamp</th><th>Log File</th><th>Total Time</th></tr></thead><tbody id="epTbody"></tbody></table></div>
+      </div>
+    </section>
+
+    <section class="view" id="view-enovia-manufacturers" aria-label="Enovia Manufacturers">
+      <div class="topbar"><div class="title"><h1>Enovia Manufacturers</h1><p>Endpoint invocation history and response status for Enovia Manufacturers master-data syncs.</p></div></div>
+      <div class="panel">
+        <div class="panel-head column">
+          <div class="panel-title-row"><h2>Enovia Manufacturers Logs</h2></div>
+          <div class="panel-filter-row"><div class="controls">
+            <label>From Date<input id="emFrom" type="date" /></label>
+            <label>To Date<input id="emTo" type="date" /></label>
+            <button id="emSearchBtn">Search</button>
+            <label>Search box<input id="emSearch" type="text" placeholder="Transaction ID / Requester / Error…" /></label>
+            <button id="emReset">Reset</button>
+          </div></div>
+        </div>
+        <div class="table-wrap"><table style="min-width:1300px"><thead><tr><th>Transaction ID</th><th>Requester</th><th>CAD Primary</th><th>Last Transaction Date</th><th>Project Count</th><th>Status</th><th>Error</th><th>Request Timestamp</th><th>Response Timestamp</th><th>Log File</th><th>Total Time</th></tr></thead><tbody id="emTbody"></tbody></table></div>
+      </div>
+    </section>
+
+    <section class="view" id="view-part-type-logs" aria-label="Part Type Logs">
+      <div class="topbar"><div class="title"><h1>Part Types</h1><p>Endpoint invocation history and response status for Part Types master-data syncs.</p></div></div>
+      <div class="panel">
+        <div class="panel-head column">
+          <div class="panel-title-row"><h2>Part Types Logs</h2></div>
+          <div class="panel-filter-row"><div class="controls">
+            <label>From Date<input id="ptlFrom" type="date" /></label>
+            <label>To Date<input id="ptlTo" type="date" /></label>
+            <button id="ptlSearchBtn">Search</button>
+            <label>Search box<input id="ptlSearch" type="text" placeholder="Transaction ID / Requester / Error…" /></label>
+            <button id="ptlReset">Reset</button>
+          </div></div>
+        </div>
+        <div class="table-wrap"><table style="min-width:1150px"><thead><tr><th>Transaction ID</th><th>Requester</th><th>CAD Primary</th><th>Status</th><th>Error</th><th>Request Timestamp</th><th>Response Timestamp</th><th>Log File</th><th>Total Time</th></tr></thead><tbody id="ptlTbody"></tbody></table></div>
+      </div>
+    </section>
+
+    <section class="view" id="view-edoc-projects" aria-label="EDOC Projects">
+      <div class="topbar"><div class="title"><h1>EDOC Projects</h1><p>Endpoint invocation history and response status for EDOC Projects master-data syncs.</p></div></div>
+      <div class="panel">
+        <div class="panel-head column">
+          <div class="panel-title-row"><h2>EDOC Projects Logs</h2></div>
+          <div class="panel-filter-row"><div class="controls">
+            <label>From Date<input id="edFrom" type="date" /></label>
+            <label>To Date<input id="edTo" type="date" /></label>
+            <button id="edSearchBtn">Search</button>
+            <label>Search box<input id="edSearch" type="text" placeholder="Transaction ID / Requester / Error…" /></label>
+            <button id="edReset">Reset</button>
+          </div></div>
+        </div>
+        <div class="table-wrap"><table style="min-width:1150px"><thead><tr><th>Transaction ID</th><th>Requester</th><th>CAD Primary</th><th>Status</th><th>Error</th><th>Request Timestamp</th><th>Response Timestamp</th><th>Log File</th><th>Total Time</th></tr></thead><tbody id="edTbody"></tbody></table></div>
+      </div>
+    </section>
+
+    <section class="view" id="view-manage-part-types" aria-label="Manage Part Types">
+      <div class="topbar"><div class="title"><h1>Manage Master Data - Part Types</h1><p>Part Type maintenance view retained from the original Admin Data screen.</p></div></div>
+      <div class="panel">
+        <div class="panel-head column">
+          <div class="panel-title-row"><h2>Part Type Management</h2></div>
+          <div class="panel-filter-row"><div class="controls"><label>Search<input id="partTypeSearch" type="text" placeholder="Part Type Name..." /></label><button id="editPartTypeBtn">Edit</button><button id="resetPartTypeBtn">Reset</button></div></div>
+        </div>
+        <div class="table-wrap"><table><thead><tr><th><input type="checkbox" id="selectAllPartTypes"/></th><th>Object ID</th><th>Part Type</th><th>SAP Material Type</th><th>IsCAD</th><th>State</th><th>Update Date</th><th>Updated By</th></tr></thead><tbody id="partTypeTbody"></tbody></table></div>
+      </div>
+    </section>
+
+    <section class="view" id="view-manage-edoc-projects" aria-label="Manage EDOC Projects">
+      <div class="topbar"><div class="title"><h1>Manage Master Data - EDOC Projects</h1><p>Working list of EDOC projects maintained within the admin console.</p></div></div>
+      <div class="panel">
+        <div class="panel-head"><div><h2>EDOC Projects Maintenance</h2><div class="sub">Editable list placeholder. Wire save/update actions to database APIs later.</div></div><div class="controls"><label>Search<input id="manageEdocSearch" type="text" placeholder="EDOC Project / Region / Division…" /></label><button id="manageEdocReset">Reset</button><button id="" class="btn-primary">Import EDOC Project CSV</button></div></div>
+        <div class="table-wrap"><table style="min-width:1100px"><thead><tr><th>EDOC Project ID</th><th>EDOC Project Name</th><th>Region ID</th><th>Region Name</th><th>Division ID</th><th>Division Name</th><th>PLM Project</th><th>State</th><th>Update Date</th><th>Updated By</th></tr></thead><tbody id="manageEdocTbody"></tbody></table></div>
+      </div>
+    </section>
+
+    <section class="view" id="view-users" aria-label="Users">
+      <div class="topbar"><div class="title"><h1>Manage Master Data - Users</h1><p>Administrator can manage all users who should get access to the Admin Console.</p></div></div>
+      <div class="panel">
+        <div class="panel-head"><div><h2>Users Administration</h2><div class="sub">View existing users, add new admin console users, and remove/delete selected users.</div></div><div class="controls"><label>Search<input id="userSearch" type="text" placeholder="User ID / First Name / Last Name / Email..." /></label><button id="addUserBtn" class="btn-primary">Add User</button><button id="deleteUserBtn" class="btn-secondary">Delete Selected</button><button id="userReset">Reset</button></div></div>
+        <div class="table-wrap"><table style="min-width:1250px"><thead><tr><th><input type="checkbox" id="selectAllUsers" /></th><th>User Id</th><th>First Name</th><th>Last Name</th><th>Email</th><th>Role</th><th>Default Password</th><th>Creation Date</th><th>Update Date</th><th>Updated By</th></tr></thead><tbody id="userTbody"></tbody></table></div>
+      </div>
+    </section>
+  </main>
+
+  <div class="modal-backdrop" id="jsonModal" role="dialog" aria-modal="true" aria-label="JSON Viewer">
+    <div class="modal">
+      <div class="modal-head"><h3 id="jsonTitle">JSON Viewer</h3><div class="modal-actions"><button id="jsonCopy">Copy</button><button id="jsonClose">Close</button></div></div>
+      <div class="modal-body"><pre><code id="jsonCode" class="mono">{}</code></pre></div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="editModal">
+    <div class="modal modal-sm">
+      <div class="modal-head"><h3>Edit Part Type</h3><div class="modal-actions"><button id="closeEditModal">Close</button></div></div>
+      <div class="modal-body">
+        <label class="muted">Select Type<select id="cadTypeSelect" class="mt-8"><option value="CAD">CAD</option><option value="Non-CAD">Non-CAD</option></select></label>
+        <br><br><button id="submitEdit">Submit</button>
+      </div>
+    </div>
+  </div>
+
+<script>
+let transactions = [
+  {transactionId:'TXN001', requester:'mukesh.p', host:'PDM01', cadPrimary:'CREO_KLA', action:'ENOVIA', parts:5, status:'SUCCESS', error:'', requestJson:{type:'createPart', parts:[{partNo:'PN-1001'},{partNo:'PN-1002'}], project:'PRJ-A'}, responseJson:{status:'SUCCESS', created:5, failed:0}, reqTs:'2026-04-28 10:01:01', resTs:'2026-04-28 10:02:01', logFile:'TXN001.log', totalTime:'60s'},
+  {transactionId:'TXN002', requester:'user2', host:'PDM02', cadPrimary:'CREO_KLA', action:'EDOC', parts:3, status:'PARTIAL', error:'2 parts created, 1 failed validation', requestJson:{type:'createPart', parts:[{partNo:'PN-2001'}], project:'PRJ-B'}, responseJson:{status:'PARTIAL', created:2, failed:1, errors:[{partNo:'PN-2003', msg:'Missing MFR'}]}, reqTs:'2026-04-28 10:11:10', resTs:'2026-04-28 10:13:44', logFile:'TXN002.log', totalTime:'154s'},
+  {transactionId:'TXN003', requester:'user3', host:'PDM01', cadPrimary:'CREO_KLA', action:'ENOVIA', parts:8, status:'FAILED', error:'ENOVIA service unavailable', requestJson:{type:'createPart', partsCount:8}, responseJson:{status:'FAILED', message:'HTTP 503'}, reqTs:'2026-04-28 10:20:09', resTs:'2026-04-28 10:20:15', logFile:'TXN003.log', totalTime:'6s'},
+  {transactionId:'TXN004', requester:'user4', host:'PDM03', cadPrimary:'SW_KLA', action:'ENOVIA', parts:12, status:'SUCCESS', error:'', requestJson:{type:'createPart', partsCount:12}, responseJson:{status:'SUCCESS'}, reqTs:'2026-04-28 10:33:00', resTs:'', logFile:'TXN004.log', totalTime:'—'}
+];
+
+const serverPartTransactions = [
+  {transactionId:'STXN001', requester:'akshay.b', host:'PDM01', cadPrimary:'CREO_KLA', action:'ENOVIA', parts:6, status:'SUCCESS', error:'', requestJson:{type:'createPart', source:'serverFilter', partsCount:6}, responseJson:{status:'SUCCESS', created:6, failed:0}, reqTs:'2026-07-03 09:15:10', resTs:'2026-07-03 09:16:05', logFile:'STXN001.log', totalTime:'55s'},
+  {transactionId:'STXN002', requester:'priya.n', host:'PDM03', cadPrimary:'CREO_KLA', action:'ENOVIA', parts:5, status:'PARTIAL', error:'3 parts created, 2 failed validation', requestJson:{type:'createPart', source:'serverFilter', partsCount:5}, responseJson:{status:'PARTIAL', created:3, failed:2, errors:[{partNo:'PN-7003', msg:'Missing project'},{partNo:'PN-7004', msg:'Invalid MFR'}]}, reqTs:'2026-07-02 14:08:44', resTs:'2026-07-02 14:10:12', logFile:'STXN002.log', totalTime:'88s'},
+  {transactionId:'STXN003', requester:'soumya.k', host:'PDM01', cadPrimary:'CREO_KLA', action:'ENOVIA', parts:8, status:'FAILED', error:'ENOVIA service unavailable', requestJson:{type:'createPart', source:'serverFilter', partsCount:8}, responseJson:{status:'FAILED', message:'HTTP 503'}, reqTs:'2026-07-01 10:30:12', resTs:'2026-07-01 10:30:21', logFile:'STXN003.log', totalTime:'9s'},
+  {transactionId:'STXN004', requester:'scheduler', host:'PDM05', cadPrimary:'CREO_KLA', action:'ENOVIA', parts:10, status:'RUNNING', error:'', requestJson:{type:'createPart', source:'serverFilter', partsCount:10}, responseJson:{status:'RUNNING', message:'Waiting for ENOVIA response'}, reqTs:'2026-06-30 13:12:40', resTs:'', logFile:'STXN004.log', totalTime:'—'}
+];
+const details = [
+  {transactionId:'TXN001', instanceId:'TXN001_1', partNumber:'1100451-000', fileName:'assy_1001.prt', project:'PRJ-A', mfr:'ACME', action:'Link', status:'SUCCESS', error:''},
+  {transactionId:'TXN001', instanceId:'TXN001_2', partNumber:'1100452-000', fileName:'assy_1002.prt', project:'PRJ-A', mfr:'ACME', action:'Link', status:'SUCCESS', error:''},
+  {transactionId:'TXN002', instanceId:'TXN002_1', partNumber:'1100453-000', fileName:'assy_2002.prt', project:'PRJ-B', mfr:'ZEN', action:'Link', status:'SUCCESS', error:''},
+  {transactionId:'TXN002', instanceId:'TXN002_2', partNumber:'', fileName:'assy_2003.prt', project:'PRJ-B', mfr:'',  status:'FAILED', error:'Missing MFR'}
+];
+const componentLogs = [
+  {transactionId:'TXN001', component:'PDM', status:'SUCCESS', message:'Request Sent to SAP PI', ts:'2026-04-28 10:01:05'},
+  {transactionId:'TXN001', component:'SAP PI', status:'SUCCESS', message:'Request Sent to Enovia', ts:'2026-04-28 10:02:00'},
+  {transactionId:'TXN001', component:'ENOVIA', status:'SUCCESS', message:'Request Received', ts:'2026-04-28 10:12:15'},
+  {transactionId:'TXN001', component:'ENOVIA', status:'SUCCESS', message:'Response Send to SAP PI', ts:'2026-04-28 10:20:14'},
+  {transactionId:'TXN001', component:'SAP PI', status:'SUCCESS', message:'Response Sent to PDM', ts:'2026-04-28 10:33:10'},
+  {transactionId:'TXN001', component:'PDM', status:'SUCCESS', message:'Response Received', ts:'2026-04-28 10:33:10'},
+  {transactionId:'TXN002', component:'PDM', status:'SUCCESS', message:'Request Sent to SAP PI', ts:'2026-04-28 10:01:05'},
+  {transactionId:'TXN002', component:'SAP PI', status:'SUCCESS', message:'Request Sent to Enovia', ts:'2026-04-28 10:02:00'},
+  {transactionId:'TXN002', component:'ENOVIA', status:'SUCCESS', message:'Request Received', ts:'2026-04-28 10:12:15'},
+  {transactionId:'TXN002', component:'ENOVIA', status:'SUCCESS', message:'Response Send to SAP PI', ts:'2026-04-28 10:20:14'},
+  {transactionId:'TXN003', component:'PDM', status:'FAILED', message:'Failed to Call SAP PI', ts:'2026-04-28 10:01:05'},
+  {transactionId:'TXN004', component:'PDM', status:'SUCCESS', message:'Request Sent to SAP PI', ts:'2026-04-28 10:01:05'},
+  {transactionId:'TXN004', component:'SAP PI', status:'FAILED', message:'Failed to Call ENOVIA', ts:'2026-04-28 10:02:00'}
+];
+const dashrollTransactions = [
+  {transactionId:'DR001', requester:'mukesh.p', host:'PDM01', cadPrimary:'CREO_KLA', partNumber:'1300199-000', revision:'AA', nextDash:'AB', description:'Create next dash for top assembly', status:'SUCCESS', error:'', requestJson:{type:'dashroll', partNumber:'1300199-000', revision:'AA', nextDash:'AB'}, responseJson:{status:'SUCCESS', newPartNumber:'1300199-000', nextDash:'AB'}, reqTs:'2026-06-10 09:01:11', resTs:'2026-06-10 09:01:35', logFile:'DR001.log', totalTime:'24s'},
+  {transactionId:'DR002', requester:'aniket.r', host:'PDM02', cadPrimary:'SW_KLA', partNumber:'1400450-001', revision:'AC', nextDash:'AD', description:'Create next dash for service BOM', status:'FAILED', error:'Revision AC is not released in ENOVIA', requestJson:{type:'dashroll', partNumber:'1400450-001', revision:'AC', nextDash:'AD'}, responseJson:{status:'FAILED', message:'Revision AC is not released in ENOVIA'}, reqTs:'2026-06-11 14:15:09', resTs:'2026-06-11 14:15:20', logFile:'DR002.log', totalTime:'11s'},
+  {transactionId:'DR003', requester:'soumya.k', host:'PDM03', cadPrimary:'CREO_KLA', partNumber:'1700888-010', revision:'E', nextDash:'F', description:'Engineering update for optics part', status:'SUCCESS', error:'', requestJson:{type:'dashroll', partNumber:'1700888-010', revision:'E', nextDash:'F'}, responseJson:{status:'SUCCESS', message:'Dashroll created successfully'}, reqTs:'2026-06-12 08:05:43', resTs:'2026-06-12 08:06:05', logFile:'DR003.log', totalTime:'22s'}
+];
+
+const serverDashrollTransactions = [
+  {transactionId:'SDR001', requester:'akshay.b', host:'PDM01', cadPrimary:'CREO_KLA', partNumber:'1900100-000', revision:'AA', nextDash:'AB', description:'Server-side dashroll completed successfully', status:'SUCCESS', error:'', requestJson:{type:'dashroll', source:'serverFilter', partNumber:'1900100-000', revision:'AA', nextDash:'AB'}, responseJson:{status:'SUCCESS', message:'Dashroll created successfully'}, reqTs:'2026-07-03 08:20:10', resTs:'2026-07-03 08:20:42', logFile:'SDR001.log', totalTime:'32s'},
+  {transactionId:'SDR002', requester:'priya.n', host:'PDM02', cadPrimary:'SW_KLA', partNumber:'1900200-001', revision:'AC', nextDash:'AD', description:'Server-side dashroll partially completed', status:'PARTIAL', error:'Dashroll created but downstream notification failed', requestJson:{type:'dashroll', source:'serverFilter', partNumber:'1900200-001', revision:'AC', nextDash:'AD'}, responseJson:{status:'PARTIAL', message:'Created in ENOVIA, notification pending'}, reqTs:'2026-07-02 10:15:22', resTs:'2026-07-02 10:16:01', logFile:'SDR002.log', totalTime:'39s'},
+  {transactionId:'SDR003', requester:'soumya.k', host:'PDM03', cadPrimary:'CREO_KLA', partNumber:'1900300-010', revision:'B', nextDash:'C', description:'Server-side dashroll failed in ENOVIA validation', status:'FAILED', error:'Base revision is not released in ENOVIA', requestJson:{type:'dashroll', source:'serverFilter', partNumber:'1900300-010', revision:'B', nextDash:'C'}, responseJson:{status:'FAILED', message:'Revision is not released'}, reqTs:'2026-07-01 14:30:18', resTs:'2026-07-01 14:30:33', logFile:'SDR003.log', totalTime:'15s'},
+  {transactionId:'SDR004', requester:'scheduler', host:'PDM04', cadPrimary:'SW_KLA', partNumber:'1900400-002', revision:'D', nextDash:'E', description:'Server-side dashroll currently running', status:'RUNNING', error:'', requestJson:{type:'dashroll', source:'serverFilter', partNumber:'1900400-002', revision:'D', nextDash:'E'}, responseJson:{status:'RUNNING', message:'Waiting for ENOVIA callback'}, reqTs:'2026-06-30 16:42:05', resTs:'', logFile:'SDR004.log', totalTime:'—'}
+];
+const dashrollComponentLogs = [
+  {transactionId:'DR001', component:'PDM', status:'SUCCESS', message:'Dashroll request sent to SAP PI', ts:'2026-06-10 09:01:12'},
+  {transactionId:'DR001', component:'SAP PI', status:'SUCCESS', message:'Payload sent to ENOVIA', ts:'2026-06-10 09:01:15'},
+  {transactionId:'DR001', component:'ENOVIA', status:'SUCCESS', message:'Dashroll created successfully', ts:'2026-06-10 09:01:35'},
+  {transactionId:'DR002', component:'PDM', status:'SUCCESS', message:'Dashroll request sent to SAP PI', ts:'2026-06-11 14:15:10'},
+  {transactionId:'DR002', component:'SAP PI', status:'SUCCESS', message:'Payload sent to ENOVIA', ts:'2026-06-11 14:15:12'},
+  {transactionId:'DR002', component:'ENOVIA', status:'FAILED', message:'Base revision is not in released state', ts:'2026-06-11 14:15:20'},
+  {transactionId:'DR003', component:'PDM', status:'SUCCESS', message:'Dashroll request sent to SAP PI', ts:'2026-06-12 08:05:44'},
+  {transactionId:'DR003', component:'SAP PI', status:'SUCCESS', message:'Waiting for ENOVIA callback', ts:'2026-06-12 08:05:50'},
+  {transactionId:'DR003', component:'ENOVIA', status:'SUCCESS', message:'Dashroll created successfully', ts:'2026-06-12 08:06:05'}
+];
+
+const uploadTransactions = [
+  {transactionId:'UP001', requester:'mukesh.p', host:'PDM01', cadPrimary:'CREO_KLA', cadIdentifier:'CAD-UP-1001', coName:'CO-900101', parts:6, files:4, status:'SUCCESS', requestJson:{type:'upload', cadIdentifier:'CAD-UP-1001', coName:'CO-900101', partsCount:6, filesCount:4}, responseJson:{status:'SUCCESS', uploadedParts:6, uploadedFiles:4}, reqTs:'2026-06-13 11:02:10', resTs:'2026-06-13 11:03:04', logFile:'UP001.log', totalTime:'54s'},
+  {transactionId:'UP002', requester:'priya.n', host:'PDM04', cadPrimary:'SW_KLA', cadIdentifier:'CAD-UP-2009', coName:'CO-900209', parts:3, files:2, status:'FAILED', requestJson:{type:'upload', cadIdentifier:'CAD-UP-2009', coName:'CO-900209', partsCount:3, filesCount:2}, responseJson:{status:'FAILED', message:'Missing dataset mapping'}, reqTs:'2026-06-14 16:12:14', resTs:'2026-06-14 16:12:39', logFile:'UP002.log', totalTime:'25s'}
+];
+
+const serverUploadTransactions = [
+  {transactionId:'SUP001', requester:'akshay.b', host:'PDM01', cadPrimary:'CREO_KLA', cadIdentifier:'CAD-SUP-1001', coName:'CO-910001', parts:8, files:5, status:'SUCCESS', requestJson:{type:'upload', source:'serverFilter', cadIdentifier:'CAD-SUP-1001', coName:'CO-910001', partsCount:8, filesCount:5}, responseJson:{status:'SUCCESS', message:'All parts and files uploaded to ENOVIA successfully', uploadedParts:8, uploadedFiles:5}, reqTs:'2026-07-03 09:10:15', resTs:'2026-07-03 09:11:02', logFile:'SUP001.log', totalTime:'47s'},
+  {transactionId:'SUP002', requester:'priya.n', host:'PDM02', cadPrimary:'SW_KLA', cadIdentifier:'CAD-SUP-2001', coName:'CO-910002', parts:5, files:3, status:'FAILED', requestJson:{type:'upload', source:'serverFilter', cadIdentifier:'CAD-SUP-2001', coName:'CO-910002', partsCount:5, filesCount:3}, responseJson:{status:'FAILED', message:'Primary file uploaded, secondary dataset failed'}, reqTs:'2026-07-02 12:25:30', resTs:'2026-07-02 12:26:40', logFile:'SUP002.log', totalTime:'70s'},
+  {transactionId:'SUP003', requester:'soumya.k', host:'PDM03', cadPrimary:'CREO_KLA', cadIdentifier:'CAD-SUP-3001', coName:'CO-910003', parts:4, files:2, status:'FAILED', requestJson:{type:'upload', source:'serverFilter', cadIdentifier:'CAD-SUP-3001', coName:'CO-910003', partsCount:4, filesCount:2}, responseJson:{status:'FAILED', message:'Dataset mapping not found'}, reqTs:'2026-07-01 15:40:10', resTs:'2026-07-01 15:40:36', logFile:'SUP003.log', totalTime:'26s'},
+  {transactionId:'SUP004', requester:'scheduler', host:'PDM04', cadPrimary:'SW_KLA', cadIdentifier:'CAD-SUP-4001', coName:'CO-910004', parts:10, files:6, status:'RUNNING', requestJson:{type:'upload', source:'serverFilter', cadIdentifier:'CAD-SUP-4001', coName:'CO-910004', partsCount:10, filesCount:6}, responseJson:{status:'RUNNING', message:'Upload in progress'}, reqTs:'2026-06-30 17:05:22', resTs:'', logFile:'SUP004.log', totalTime:'—'}
+];
+
+const uploadFileTransactionDetails = [
+  {transactionId:'UP001', instanceId:'UP001_1', partNumber:'1100451-000', partRevision:'AA', fileNames:'assy_1001.prt, assy_1001.drw', pdmUpdateStatus:'SUCCESS', pdmUpdateMessage:'PDM metadata updated successfully', status:'SUCCESS', message:'Files uploaded successfully'},
+  {transactionId:'UP001', instanceId:'UP001_2', partNumber:'1100452-000', partRevision:'AB', fileNames:'assy_1002.prt', pdmUpdateStatus:'SUCCESS', pdmUpdateMessage:'PDM state updated to Released', status:'SUCCESS', message:'Part/file upload completed'},
+  {transactionId:'UP002', instanceId:'UP002_1', partNumber:'1200209-001', partRevision:'B', fileNames:'part_2009.asm, part_2009.pdf', pdmUpdateStatus:'FAILED', pdmUpdateMessage:'PDM metadata update skipped due to ENOVIA failure', status:'FAILED', message:'Missing dataset mapping'},
+  {transactionId:'UP002', instanceId:'UP002_2', partNumber:'1200210-001', partRevision:'C', fileNames:'part_2010.prt', pdmUpdateStatus:'FAILED', pdmUpdateMessage:'PDM state not updated', status:'FAILED', message:'Secondary file upload failed'},
+  {transactionId:'SUP001', instanceId:'SUP001_1', partNumber:'2100100-000', partRevision:'A', fileNames:'assy_2100100.prt, assy_2100100.drw', pdmUpdateStatus:'SUCCESS', pdmUpdateMessage:'PDM metadata updated successfully', status:'SUCCESS', message:'Uploaded to ENOVIA successfully'},
+  {transactionId:'SUP002', instanceId:'SUP002_1', partNumber:'2100200-001', partRevision:'B', fileNames:'part_2100200.asm, part_2100200.pdf', pdmUpdateStatus:'FAILED', pdmUpdateMessage:'PDM update skipped due to partial ENOVIA response', status:'FAILED', message:'Primary file uploaded, secondary dataset failed'},
+  {transactionId:'SUP003', instanceId:'SUP003_1', partNumber:'2100300-010', partRevision:'C', fileNames:'doc_2100300.pdf', pdmUpdateStatus:'FAILED', pdmUpdateMessage:'PDM state not updated', status:'FAILED', message:'Dataset mapping not found'},
+  {transactionId:'SUP004', instanceId:'SUP004_1', partNumber:'2100400-002', partRevision:'D', fileNames:'assy_2100400.prt', pdmUpdateStatus:'RUNNING', pdmUpdateMessage:'Waiting for ENOVIA completion callback', status:'RUNNING', message:'Upload in progress'}
+];
+const uploadComponentLogs = [
+  {transactionId:'SUP001', component:'PDM', status:'SUCCESS', message:'Upload request prepared and sent to SAP PI', ts:'2026-07-03 09:10:18'},
+  {transactionId:'SUP001', component:'SAP PI', status:'SUCCESS', message:'File payload sent to ENOVIA', ts:'2026-07-03 09:10:35'},
+  {transactionId:'SUP001', component:'ENOVIA', status:'SUCCESS', message:'File uploaded successfully', ts:'2026-07-03 09:11:02'},
+  {transactionId:'SUP002', component:'PDM', status:'SUCCESS', message:'Primary file upload request sent', ts:'2026-07-02 12:25:35'},
+  {transactionId:'SUP002', component:'ENOVIA', status:'PARTIAL', message:'Primary file uploaded, secondary dataset failed', ts:'2026-07-02 12:26:40'},
+  {transactionId:'SUP003', component:'SAP PI', status:'FAILED', message:'Dataset mapping validation failed', ts:'2026-07-01 15:40:30'},
+  {transactionId:'SUP004', component:'PDM', status:'SUCCESS', message:'Upload request is still processing', ts:'2026-06-30 17:05:45'},
+  {transactionId:'SUP004', component:'ENOVIA', status:'SUCCESS', message:'Waiting for upload completion callback', ts:'2026-06-30 17:06:10'}
+];
+
+const backflowTransactions = [
+  {id:1, transactionId:'BF001', partName:'1100451-000 Rev AA', pdmVault:'CAD_PRIMARY', jsonData:{partNumber:'1100451-000', revision:'AA', attributes:{lifecycle:'Released', owner:'Engineering'}, updatedInEnovia:true}, enoviaUpdateTs:'2026-06-14 01:05:00', pdmUpdateTs:'2026-06-14 01:05:22', pdmUpdateStatus:'SUCCESS'},
+  {id:2, transactionId:'BF002', partName:'1400450-001 Rev AC', pdmVault:'CAD_SECONDARY', jsonData:{partNumber:'1400450-001', revision:'AC', attributes:{latestRevision:'AD'}, updatedInEnovia:true}, enoviaUpdateTs:'2026-06-15 01:05:00', pdmUpdateTs:'2026-06-15 01:05:14', pdmUpdateStatus:'FAILED'},
+  {id:3, transactionId:'BF003', partName:'1700888-010 Rev E', pdmVault:'CAD_PRIMARY', jsonData:{partNumber:'1700888-010', revision:'E', attributes:{mass:'12.4kg', material:'Aluminum'}, updatedInEnovia:true}, enoviaUpdateTs:'2026-06-16 02:15:00', pdmUpdateTs:'2026-06-16 02:15:40', pdmUpdateStatus:'SUCCESS'}
+];
+const serverBackflowTransactions = [
+  {id:101, transactionId:'SBF001', partName:'2100100-000 Rev A', pdmVault:'CAD_PRIMARY', jsonData:{partNumber:'2100100-000', revision:'A', attributes:{state:'Released', vault:'CAD_PRIMARY'}, updatedInEnovia:true}, enoviaUpdateTs:'2026-07-03 08:05:00', pdmUpdateTs:'2026-07-03 08:06:12', pdmUpdateStatus:'SUCCESS'},
+  {id:102, transactionId:'SBF002', partName:'2100200-001 Rev B', pdmVault:'CAD_SECONDARY', jsonData:{partNumber:'2100200-001', revision:'B', attributes:{state:'Released', vault:'CAD_SECONDARY'}, updatedInEnovia:true}, enoviaUpdateTs:'2026-07-02 09:25:00', pdmUpdateTs:'2026-07-02 09:25:44', pdmUpdateStatus:'FAILED'},
+  {id:103, transactionId:'SBF003', partName:'2100300-010 Rev C', pdmVault:'NON_CAD', jsonData:{partNumber:'2100300-010', revision:'C', attributes:{documentType:'Specification', vault:'NON_CAD'}, updatedInEnovia:true}, enoviaUpdateTs:'2026-07-01 11:30:00', pdmUpdateTs:'', pdmUpdateStatus:'RUNNING'},
+  {id:104, transactionId:'SBF004', partName:'2100400-002 Rev D', pdmVault:'CAD_PRIMARY', jsonData:{partNumber:'2100400-002', revision:'D', attributes:{state:'Released', vault:'CAD_PRIMARY'}, updatedInEnovia:true}, enoviaUpdateTs:'2026-06-30 15:42:00', pdmUpdateTs:'2026-06-30 15:43:05', pdmUpdateStatus:'SUCCESS'}
+];
+
+const searchTransactions = [
+  {transactionId:'SRCH001', requester:'mukesh.p', host:'PDM01', cadPrimary:'CREO_KLA', parts:12, status:'SUCCESS', error:'', requestJson:{type:'search', criteria:{partNumber:'1100451-000', revision:'AA'}, requestedAttributes:['Part Number','Revision','State']}, reqTs:'2026-06-13 10:05:12', resTs:'2026-06-13 10:05:36', logFile:'SRCH001.log', totalTime:'24s'},
+  {transactionId:'SRCH002', requester:'priya.n', host:'PDM04', cadPrimary:'SW_KLA', parts:0, status:'FAILED', error:'ENOVIA search service timeout', requestJson:{type:'search', criteria:{keyword:'optics assembly'}, requestedAttributes:['Part Number','Description']}, reqTs:'2026-06-14 13:14:22', resTs:'2026-06-14 13:15:08', logFile:'SRCH002.log', totalTime:'46s'},
+  {transactionId:'SRCH003', requester:'soumya.k', host:'PDM03', cadPrimary:'CREO_KLA', parts:5, status:'SUCCESS', error:'', requestJson:{type:'search', criteria:{project:'PRJ-APAC-001'}, requestedAttributes:['Part Number','Revision','Project']}, reqTs:'2026-06-15 09:30:10', resTs:'2026-06-15 09:30:31', logFile:'SRCH003.log', totalTime:'21s'}
+];
+const serverSearchTransactions = [
+  {transactionId:'SSRC001', requester:'akshay.b', host:'PDM01', cadPrimary:'CREO_KLA', parts:18, status:'SUCCESS', error:'', requestJson:{type:'search', source:'serverFilter', criteria:{partNumber:'2100100-000', revision:'A'}, requestedAttributes:['Part Number','Revision','State','Vault']}, reqTs:'2026-07-03 08:45:10', resTs:'2026-07-03 08:45:38', logFile:'SSRC001.log', totalTime:'28s'},
+  {transactionId:'SSRC002', requester:'priya.n', host:'PDM02', cadPrimary:'SW_KLA', parts:0, status:'FAILED', error:'Invalid search criteria received from PDM', requestJson:{type:'search', source:'serverFilter', criteria:{partNumber:'', revision:'B'}, requestedAttributes:['Part Number','Revision']}, reqTs:'2026-07-02 11:22:19', resTs:'2026-07-02 11:22:25', logFile:'SSRC002.log', totalTime:'6s'},
+  {transactionId:'SSRC003', requester:'soumya.k', host:'PDM03', cadPrimary:'CREO_KLA', parts:9, status:'SUCCESS', error:'', requestJson:{type:'search', source:'serverFilter', criteria:{cadIdentifier:'CAD-SUP-3001'}, requestedAttributes:['Part Number','Revision','CAD Identifier']}, reqTs:'2026-07-01 14:15:42', resTs:'2026-07-01 14:16:02', logFile:'SSRC003.log', totalTime:'20s'},
+  {transactionId:'SSRC004', requester:'scheduler', host:'PDM05', cadPrimary:'SW_KLA', parts:0, status:'FAILED', error:'ENOVIA returned no response', requestJson:{type:'search', source:'serverFilter', criteria:{project:'PRJ-NA-108'}, requestedAttributes:['Part Number','Project']}, reqTs:'2026-06-30 16:05:00', resTs:'2026-06-30 16:05:45', logFile:'SSRC004.log', totalTime:'45s'}
+];
+const searchComponentLogs = [  
+  {transactionId:'SRCH001', component:'PDM', status:'SUCCESS', message:'Search request sent to SAP PI', ts:'2026-06-13 10:05:13'},  
+  {transactionId:'SRCH001', component:'SAP PI', status:'SUCCESS', message:'Search payload sent to ENOVIA', ts:'2026-06-13 10:05:18'},  
+  {transactionId:'SRCH001', component:'ENOVIA', status:'SUCCESS', message:'Search results returned successfully', ts:'2026-06-13 10:05:36'},  
+  {transactionId:'SRCH002', component:'PDM', status:'SUCCESS', message:'Search request sent to SAP PI', ts:'2026-06-14 13:14:23'},  
+  {transactionId:'SRCH002', component:'SAP PI', status:'SUCCESS', message:'Search payload sent to ENOVIA', ts:'2026-06-14 13:14:30'},  
+  {transactionId:'SRCH002', component:'ENOVIA', status:'FAILED', message:'Search service timeout', ts:'2026-06-14 13:15:08'},  
+  {transactionId:'SRCH003', component:'PDM', status:'SUCCESS', message:'Search request sent to SAP PI', ts:'2026-06-15 09:30:11'},  
+  {transactionId:'SRCH003', component:'SAP PI', status:'SUCCESS', message:'Search payload sent to ENOVIA', ts:'2026-06-15 09:30:16'},  
+  {transactionId:'SRCH003', component:'ENOVIA', status:'SUCCESS', message:'Search results returned successfully', ts:'2026-06-15 09:30:31'},  
+  {transactionId:'SSRC001', component:'PDM', status:'SUCCESS', message:'Server-side search request sent to SAP PI', ts:'2026-07-03 08:45:12'},  
+  {transactionId:'SSRC001', component:'SAP PI', status:'SUCCESS', message:'Search request forwarded to ENOVIA', ts:'2026-07-03 08:45:20'},  
+  {transactionId:'SSRC001', component:'ENOVIA', status:'SUCCESS', message:'18 parts returned successfully', ts:'2026-07-03 08:45:38'},  
+  {transactionId:'SSRC002', component:'PDM', status:'SUCCESS', message:'Server-side search request received', ts:'2026-07-02 11:22:20'},  
+  {transactionId:'SSRC002', component:'PDM', status:'FAILED', message:'Invalid search criteria received from PDM', ts:'2026-07-02 11:22:25'},  
+  {transactionId:'SSRC003', component:'PDM', status:'SUCCESS', message:'Server-side search request sent to SAP PI', ts:'2026-07-01 14:15:44'},  
+  {transactionId:'SSRC003', component:'SAP PI', status:'SUCCESS', message:'CAD identifier search sent to ENOVIA', ts:'2026-07-01 14:15:50'},  
+  {transactionId:'SSRC003', component:'ENOVIA', status:'SUCCESS', message:'9 matching parts returned', ts:'2026-07-01 14:16:02'},  
+  {transactionId:'SSRC004', component:'PDM', status:'SUCCESS', message:'Server-side search request sent to SAP PI', ts:'2026-06-30 16:05:02'},  
+  {transactionId:'SSRC004', component:'ENOVIA', status:'FAILED', message:'ENOVIA returned no response', ts:'2026-06-30 16:05:45'}  
+];  
+const higherDashLogs = [
+  {transactionId:'HD-001', requester:'PDM Context User', cadPrimary:'CREO_KLA', partNumber:'2000200-000', partRev:'AA', status:'SUCCESS', error:'', requestJson:{transactionid:'HD-001', requester:'PDM Context User', requesttimestamp:'2026-07-07T09:00:00+05:30', partnumber:'2000200-000', partrev:'AA', cadPrimary:'CREO_KLA'}, responseJson:{transactionid:'HD-001', responsetimestamp:'2026-07-07T09:00:03+05:30', higherdash:[{name:'2000200-001', rev:'AA', state:'Preliminary', msg:'Existing Higher Dash'},{name:'2000200-001', rev:'AB', state:'Preliminary', msg:'Existing Higher Dash'},{name:'2000200-002', rev:'AA', state:'Preliminary', msg:'Existing Higher Dash'},{name:'2000200-003', rev:'AA', state:'', msg:'Next Available Dash'}]}, reqTs:'2026-07-07 09:00:00', resTs:'2026-07-07 09:00:03', totalTime:'3s'},
+  {transactionId:'HD-002', requester:'akshay.b', cadPrimary:'CREO_KLA', partNumber:'2100200-000', partRev:'AA', status:'SUCCESS', error:'', requestJson:{transactionid:'HD-002', requester:'akshay.b', requesttimestamp:'2026-07-07T09:10:00+05:30', partnumber:'2100200-000', partrev:'AA', cadPrimary:'CREO_KLA'}, responseJson:{transactionid:'HD-002', responsetimestamp:'2026-07-07T09:10:04+05:30', higherdash:[{name:'2100200-001', rev:'AA', state:'Preliminary', msg:'Existing Higher Dash'},{name:'2100200-001', rev:'AB', state:'Preliminary', msg:'Existing Higher Dash'},{name:'2100200-002', rev:'AA', state:'Preliminary', msg:'Existing Higher Dash'},{name:'2100200-003', rev:'AA', state:'', msg:'Next Available Dash'}]}, reqTs:'2026-07-07 09:10:00', resTs:'2026-07-07 09:10:04', totalTime:'4s'},
+  {transactionId:'HD-003', requester:'pdm.admin', cadPrimary:'SW_KLA', partNumber:'2200200-000', partRev:'AA', status:'SUCCESS', error:'', requestJson:{transactionid:'HD-003', requester:'pdm.admin', requesttimestamp:'2026-07-07T09:20:00+05:30', partnumber:'2200200-000', partrev:'AA', cadprimary:'No'}, responseJson:{transactionid:'HD-003', responsetimestamp:'2026-07-07T09:20:05+05:30', higherdash:[{name:'2200200-001', rev:'AA', state:'Preliminary', msg:'Existing Higher Dash'},{name:'2200200-001', rev:'AB', state:'Preliminary', msg:'Existing Higher Dash'},{name:'2200200-002', rev:'AA', state:'Preliminary', msg:'Existing Higher Dash'},{name:'2200200-003', rev:'AA', state:'', msg:'Next Available Dash'}]}, reqTs:'2026-07-07 09:20:00', resTs:'2026-07-07 09:20:05', totalTime:'5s'},
+  {transactionId:'HD-004', requester:'priya.n', cadPrimary:'SW_KLA', partNumber:'2300200-000', partRev:'AA', status:'SUCCESS', error:'', requestJson:{transactionid:'HD-004', requester:'priya.n', requesttimestamp:'2026-07-07T09:30:00+05:30', partnumber:'2300200-000', partrev:'AA', cadprimary:'No'}, responseJson:{transactionid:'HD-004', responsetimestamp:'2026-07-07T09:30:04+05:30', higherdash:[{name:'2300200-001', rev:'AA', state:'Preliminary', msg:'Existing Higher Dash'},{name:'2300200-001', rev:'AB', state:'Preliminary', msg:'Existing Higher Dash'},{name:'2300200-002', rev:'AA', state:'Preliminary', msg:'Existing Higher Dash'},{name:'2300200-003', rev:'AA', state:'', msg:'Next Available Dash'}]}, reqTs:'2026-07-07 09:30:00', resTs:'2026-07-07 09:30:04', totalTime:'4s'},
+  {transactionId:'HD-005', requester:'soumya.k', cadPrimary:'CREO_KLA', partNumber:'2400200-000', partRev:'AA', status:'SUCCESS', error:'', requestJson:{transactionid:'HD-005', requester:'soumya.k', requesttimestamp:'2026-07-07T09:40:00+05:30', partnumber:'2400200-000', partrev:'AA', cadPrimary:'CREO_KLA'}, responseJson:{transactionid:'HD-005', responsetimestamp:'2026-07-07T09:40:06+05:30', higherdash:[{name:'2400200-001', rev:'AA', state:'Preliminary', msg:'Existing Higher Dash'},{name:'2400200-001', rev:'AB', state:'Preliminary', msg:'Existing Higher Dash'},{name:'2400200-002', rev:'AA', state:'Preliminary', msg:'Existing Higher Dash'},{name:'2400200-003', rev:'AA', state:'', msg:'Next Available Dash'}]}, reqTs:'2026-07-07 09:40:00', resTs:'2026-07-07 09:40:06', totalTime:'6s'},
+  {transactionId:'HD-006', requester:'scheduler', cadPrimary:'CREO_KLA', partNumber:'2500200-000', partRev:'AA', status:'SUCCESS', error:'', requestJson:{transactionid:'HD-006', requester:'scheduler', requesttimestamp:'2026-07-07T09:50:00+05:30', partnumber:'2500200-000', partrev:'AA', cadPrimary:'CREO_KLA'}, responseJson:{transactionid:'HD-006', responsetimestamp:'2026-07-07T09:50:05+05:30', higherdash:[{name:'2500200-001', rev:'AA', state:'Preliminary', msg:'Existing Higher Dash'},{name:'2500200-001', rev:'AB', state:'Preliminary', msg:'Existing Higher Dash'},{name:'2500200-002', rev:'AA', state:'Preliminary', msg:'Existing Higher Dash'},{name:'2500200-003', rev:'AA', state:'', msg:'Next Available Dash'}]}, reqTs:'2026-07-07 09:50:00', resTs:'2026-07-07 09:50:05', totalTime:'5s'},
+  {transactionId:'HD-007', requester:'support.user', cadPrimary:'SW_KLA', partNumber:'2600200-000', partRev:'AA', status:'SUCCESS', error:'', requestJson:{transactionid:'HD-007', requester:'support.user', requesttimestamp:'2026-07-07T10:00:00+05:30', partnumber:'2600200-000', partrev:'AA', cadprimary:'No'}, responseJson:{transactionid:'HD-007', responsetimestamp:'2026-07-07T10:00:04+05:30', higherdash:[{name:'2600200-001', rev:'AA', state:'Preliminary', msg:'Existing Higher Dash'},{name:'2600200-001', rev:'AB', state:'Preliminary', msg:'Existing Higher Dash'},{name:'2600200-002', rev:'AA', state:'Preliminary', msg:'Existing Higher Dash'},{name:'2600200-003', rev:'AA', state:'', msg:'Next Available Dash'}]}, reqTs:'2026-07-07 10:00:00', resTs:'2026-07-07 10:00:04', totalTime:'4s'},
+  {transactionId:'HD-008', requester:'integration.user', cadPrimary:'CREO_KLA', partNumber:'2700200-000', partRev:'AA', status:'FAILED', error:'Part number not found in ENOVIA', requestJson:{transactionid:'HD-008', requester:'integration.user', requesttimestamp:'2026-07-07T10:10:00+05:30', partnumber:'2700200-000', partrev:'AA', cadPrimary:'CREO_KLA'}, responseJson:{transactionid:'HD-008', responsetimestamp:'2026-07-07T10:10:03+05:30', status:'FAILED', message:'Part number not found in ENOVIA'}, reqTs:'2026-07-07 10:10:00', resTs:'2026-07-07 10:10:03', totalTime:'3s'}
+];
+const getCoLogs = [
+  {transactionId:'TXN-20260325-141837', requester:'PDM Context User', cadPrimary:'', status:'SUCCESS', error:'', requestJson:{transactionid:'TXN-20260325-141837', requester:'PDM Context User', requesttimestamp:'2026-03-25T14:18:37+05:30', cadprimary:'', buplant:[{bu:'WIN', plant:'1001'},{bu:'Surfscan', plant:'1002'}]}, responseJson:{transactionid:'TXN-20260325-141837', requester:'PDM Context User', requesttimestamp:'2026-03-25T14:18:37+05:30', colist:[{coname:'D48900', coproject:'WIN', codesc:'Test CO', bu:'WIN', plant:'1001', aipartcount:'0'},{coname:'D48912', coproject:'WIN', codesc:'Test CO', bu:'WIN', plant:'1001', aipartcount:'2'},{coname:'D48212', coproject:'SFS NanoPro', codesc:'Test CO', bu:'Surfscan', plant:'1002', aipartcount:'2'}]}, reqTs:'2026-03-25 14:18:37', resTs:'2026-03-25 14:18:39', totalTime:'2s'},
+  {transactionId:'CO-20260707-093012', requester:'akshay.b', cadPrimary:'CREO_KLA', status:'SUCCESS', error:'', requestJson:{transactionid:'CO-20260707-093012', requester:'akshay.b', requesttimestamp:'2026-07-07T09:30:12+05:30', cadPrimary:'CREO_KLA', buplant:[{bu:'WIN', plant:'1001'},{bu:'Surfscan', plant:'1002'}]}, responseJson:{transactionid:'CO-20260707-093012', requester:'akshay.b', requesttimestamp:'2026-07-07T09:30:12+05:30', colist:[{coname:'D48900', coproject:'WIN', codesc:'Test CO', bu:'WIN', plant:'1001', aipartcount:'0'},{coname:'D48912', coproject:'WIN', codesc:'Test CO', bu:'WIN', plant:'1001', aipartcount:'2'},{coname:'D48212', coproject:'SFS NanoPro', codesc:'Test CO', bu:'Surfscan', plant:'1002', aipartcount:'2'}]}, reqTs:'2026-07-07 09:30:12', resTs:'2026-07-07 09:30:16', totalTime:'4s'},
+  {transactionId:'CO-20260707-111502', requester:'soumya.k', cadPrimary:'SW_KLA', status:'FAILED', error:'BU/Plant combination is invalid', requestJson:{transactionid:'CO-20260707-111502', requester:'soumya.k', requesttimestamp:'2026-07-07T11:15:02+05:30', cadprimary:'No', buplant:[{bu:'UNKNOWN', plant:'9999'}]}, responseJson:{transactionid:'CO-20260707-111502', requester:'soumya.k', requesttimestamp:'2026-07-07T11:15:02+05:30', status:'FAILED', message:'BU/Plant combination is invalid'}, reqTs:'2026-07-07 11:15:02', resTs:'2026-07-07 11:15:07', totalTime:'5s'},
+  {transactionId:'CO-20260706-081522', requester:'pdm.admin', cadPrimary:'CREO_KLA', status:'SUCCESS', error:'', requestJson:{transactionid:'CO-20260706-081522', requester:'pdm.admin', requesttimestamp:'2026-07-06T08:15:22+05:30', cadPrimary:'CREO_KLA', buplant:[{bu:'WIN', plant:'1001'}]}, responseJson:{transactionid:'CO-20260706-081522', requester:'pdm.admin', requesttimestamp:'2026-07-06T08:15:22+05:30', colist:[{coname:'D49010', coproject:'WIN', codesc:'Chamber release CO', bu:'WIN', plant:'1001', aipartcount:'3'},{coname:'D49011', coproject:'WIN', codesc:'Mechanical update CO', bu:'WIN', plant:'1001', aipartcount:'1'}]}, reqTs:'2026-07-06 08:15:22', resTs:'2026-07-06 08:15:28', totalTime:'6s'},
+  {transactionId:'CO-20260706-133145', requester:'priya.n', cadPrimary:'SW_KLA', status:'SUCCESS', error:'', requestJson:{transactionid:'CO-20260706-133145', requester:'priya.n', requesttimestamp:'2026-07-06T13:31:45+05:30', cadprimary:'No', buplant:[{bu:'Surfscan', plant:'1002'},{bu:'SFS NanoPro', plant:'1003'}]}, responseJson:{transactionid:'CO-20260706-133145', requester:'priya.n', requesttimestamp:'2026-07-06T13:31:45+05:30', colist:[{coname:'D49200', coproject:'SFS NanoPro', codesc:'Optics platform CO', bu:'Surfscan', plant:'1002', aipartcount:'4'},{coname:'D49210', coproject:'SFS NanoPro', codesc:'NanoPro test CO', bu:'SFS NanoPro', plant:'1003', aipartcount:'2'}]}, reqTs:'2026-07-06 13:31:45', resTs:'2026-07-06 13:31:51', totalTime:'6s'},
+  {transactionId:'CO-20260705-072008', requester:'scheduler', cadPrimary:'CREO_KLA', status:'SUCCESS', error:'', requestJson:{transactionid:'CO-20260705-072008', requester:'scheduler', requesttimestamp:'2026-07-05T07:20:08+05:30', cadPrimary:'CREO_KLA', buplant:[{bu:'Photonics', plant:'2001'}]}, responseJson:{transactionid:'CO-20260705-072008', requester:'scheduler', requesttimestamp:'2026-07-05T07:20:08+05:30', colist:[{coname:'D50100', coproject:'Photonics', codesc:'Laser module CO', bu:'Photonics', plant:'2001', aipartcount:'5'},{coname:'D50120', coproject:'Photonics', codesc:'Laser service CO', bu:'Photonics', plant:'2001', aipartcount:'0'}]}, reqTs:'2026-07-05 07:20:08', resTs:'2026-07-05 07:20:18', totalTime:'10s'},
+  {transactionId:'CO-20260705-154440', requester:'support.user', cadPrimary:'SW_KLA', status:'FAILED', error:'ENOVIA Get CO service unavailable', requestJson:{transactionid:'CO-20260705-154440', requester:'support.user', requesttimestamp:'2026-07-05T15:44:40+05:30', cadprimary:'No', buplant:[{bu:'WIN', plant:'1001'}]}, responseJson:{transactionid:'CO-20260705-154440', requester:'support.user', requesttimestamp:'2026-07-05T15:44:40+05:30', status:'FAILED', message:'ENOVIA Get CO service unavailable'}, reqTs:'2026-07-05 15:44:40', resTs:'2026-07-05 15:45:02', totalTime:'22s'},
+  {transactionId:'CO-20260704-100905', requester:'integration.user', cadPrimary:'CREO_KLA', status:'SUCCESS', error:'', requestJson:{transactionid:'CO-20260704-100905', requester:'integration.user', requesttimestamp:'2026-07-04T10:09:05+05:30', cadPrimary:'CREO_KLA', buplant:[{bu:'Inspection', plant:'3001'},{bu:'Metrology', plant:'3002'}]}, responseJson:{transactionid:'CO-20260704-100905', requester:'integration.user', requesttimestamp:'2026-07-04T10:09:05+05:30', colist:[{coname:'D51010', coproject:'Inspection', codesc:'Inspection common CO', bu:'Inspection', plant:'3001', aipartcount:'7'},{coname:'D51022', coproject:'Metrology', codesc:'Metrology update CO', bu:'Metrology', plant:'3002', aipartcount:'2'}]}, reqTs:'2026-07-04 10:09:05', resTs:'2026-07-04 10:09:12', totalTime:'7s'},
+  {transactionId:'CO-20260703-121500', requester:'akshay.b', cadPrimary:'CREO_KLA', status:'SUCCESS', error:'', requestJson:{transactionid:'CO-20260703-121500', requester:'akshay.b', requesttimestamp:'2026-07-03T12:15:00+05:30', cadPrimary:'CREO_KLA', buplant:[{bu:'WIN', plant:'1001'},{bu:'Photonics', plant:'2001'}]}, responseJson:{transactionid:'CO-20260703-121500', requester:'akshay.b', requesttimestamp:'2026-07-03T12:15:00+05:30', colist:[{coname:'D52001', coproject:'WIN', codesc:'AI part creation CO', bu:'WIN', plant:'1001', aipartcount:'8'},{coname:'D52002', coproject:'Photonics', codesc:'Photonics AI CO', bu:'Photonics', plant:'2001', aipartcount:'3'}]}, reqTs:'2026-07-03 12:15:00', resTs:'2026-07-03 12:15:08', totalTime:'8s'},
+  {transactionId:'CO-20260702-095830', requester:'scheduler', cadPrimary:'SW_KLA', status:'FAILED', error:'No COs found for requested BU/Plant', requestJson:{transactionid:'CO-20260702-095830', requester:'scheduler', requesttimestamp:'2026-07-02T09:58:30+05:30', cadprimary:'No', buplant:[{bu:'LegacyBU', plant:'7001'}]}, responseJson:{transactionid:'CO-20260702-095830', requester:'scheduler', requesttimestamp:'2026-07-02T09:58:30+05:30', status:'FAILED', message:'No COs found for requested BU/Plant'}, reqTs:'2026-07-02 09:58:30', resTs:'2026-07-02 09:58:35', totalTime:'5s'},
+  {transactionId:'CO-20260701-165020', requester:'pdm.admin', cadPrimary:'CREO_KLA', status:'SUCCESS', error:'', requestJson:{transactionid:'CO-20260701-165020', requester:'pdm.admin', requesttimestamp:'2026-07-01T16:50:20+05:30', cadPrimary:'CREO_KLA', buplant:[{bu:'Surfscan', plant:'1002'}]}, responseJson:{transactionid:'CO-20260701-165020', requester:'pdm.admin', requesttimestamp:'2026-07-01T16:50:20+05:30', colist:[{coname:'D53008', coproject:'Surfscan', codesc:'Surfscan BOM update', bu:'Surfscan', plant:'1002', aipartcount:'6'},{coname:'D53015', coproject:'Surfscan', codesc:'Surfscan ECO', bu:'Surfscan', plant:'1002', aipartcount:'1'}]}, reqTs:'2026-07-01 16:50:20', resTs:'2026-07-01 16:50:27', totalTime:'7s'},
+  {transactionId:'CO-20260630-103355', requester:'support.user', cadPrimary:'SW_KLA', status:'SUCCESS', error:'', requestJson:{transactionid:'CO-20260630-103355', requester:'support.user', requesttimestamp:'2026-06-30T10:33:55+05:30', cadprimary:'No', buplant:[{bu:'Metrology', plant:'3002'}]}, responseJson:{transactionid:'CO-20260630-103355', requester:'support.user', requesttimestamp:'2026-06-30T10:33:55+05:30', colist:[{coname:'D54010', coproject:'Metrology', codesc:'Metrology chamber CO', bu:'Metrology', plant:'3002', aipartcount:'2'},{coname:'D54020', coproject:'Metrology', codesc:'Metrology optics CO', bu:'Metrology', plant:'3002', aipartcount:'4'}]}, reqTs:'2026-06-30 10:33:55', resTs:'2026-06-30 10:34:01', totalTime:'6s'}
+];
+const enoviaProjectsLogs = [
+  {transactionId:'EP001', requester:'scheduler', cadPrimary:'CREO_KLA', projectCount:26, status:'SUCCESS', error:'', reqTs:'2026-07-07 03:10:00', resTs:'2026-07-07 03:10:09', logFile:'EP001.log', totalTime:'9s'},
+  {transactionId:'EP002', requester:'scheduler', cadPrimary:'SW_KLA', projectCount:0, status:'FAILED', error:'HTTP 500 returned from Enovia Projects endpoint', reqTs:'2026-07-06 03:10:00', resTs:'2026-07-06 03:10:06', logFile:'EP002.log', totalTime:'6s'},
+  {transactionId:'EP003', requester:'akshay.b', cadPrimary:'CREO_KLA', projectCount:18, status:'SUCCESS', error:'', reqTs:'2026-07-05 09:25:12', resTs:'2026-07-05 09:25:21', logFile:'EP003.log', totalTime:'9s'},
+  {transactionId:'EP004', requester:'pdm.admin', cadPrimary:'CREO_KLA', projectCount:32, status:'SUCCESS', error:'', reqTs:'2026-07-04 11:05:44', resTs:'2026-07-04 11:05:58', logFile:'EP004.log', totalTime:'14s'},
+  {transactionId:'EP005', requester:'scheduler', cadPrimary:'SW_KLA', projectCount:21, status:'SUCCESS', error:'', reqTs:'2026-07-03 02:45:00', resTs:'2026-07-03 02:45:12', logFile:'EP005.log', totalTime:'12s'},
+  {transactionId:'EP006', requester:'integration.user', cadPrimary:'CREO_KLA', projectCount:0, status:'FAILED', error:'Invalid CAD Primary value received from PDM', reqTs:'2026-07-02 13:20:10', resTs:'2026-07-02 13:20:16', logFile:'EP006.log', totalTime:'6s'},
+  {transactionId:'EP007', requester:'scheduler', cadPrimary:'CREO_KLA', projectCount:29, status:'SUCCESS', error:'', reqTs:'2026-07-01 03:10:00', resTs:'2026-07-01 03:10:10', logFile:'EP007.log', totalTime:'10s'},
+  {transactionId:'EP008', requester:'support.user', cadPrimary:'SW_KLA', projectCount:15, status:'SUCCESS', error:'', reqTs:'2026-06-30 16:40:31', resTs:'2026-06-30 16:40:43', logFile:'EP008.log', totalTime:'12s'}
+];
+const enoviaManufacturersLogs = [
+  {transactionId:'EM001', requester:'scheduler', cadPrimary:'CREO_KLA', lastTransactionDate:'2026-07-06 00:00:00', projectCount:42, status:'SUCCESS', error:'', reqTs:'2026-07-07 04:15:00', resTs:'2026-07-07 04:15:19', logFile:'EM001.log', totalTime:'19s'},
+  {transactionId:'EM002', requester:'scheduler', cadPrimary:'CREO_KLA', lastTransactionDate:'2026-07-05 00:00:00', projectCount:0, status:'FAILED', error:'Manufacturer sync failed - cutoff date is invalid', reqTs:'2026-07-06 04:15:00', resTs:'2026-07-06 04:15:05', logFile:'EM002.log', totalTime:'5s'},
+  {transactionId:'EM003', requester:'akshay.b', cadPrimary:'SW_KLA', lastTransactionDate:'2026-07-04 00:00:00', projectCount:35, status:'SUCCESS', error:'', reqTs:'2026-07-05 08:22:18', resTs:'2026-07-05 08:22:34', logFile:'EM003.log', totalTime:'16s'},
+  {transactionId:'EM004', requester:'integration.user', cadPrimary:'CREO_KLA', lastTransactionDate:'2026-07-03 00:00:00', projectCount:51, status:'SUCCESS', error:'', reqTs:'2026-07-04 14:05:11', resTs:'2026-07-04 14:05:29', logFile:'EM004.log', totalTime:'18s'},
+  {transactionId:'EM005', requester:'scheduler', cadPrimary:'SW_KLA', lastTransactionDate:'2026-07-02 00:00:00', projectCount:0, status:'FAILED', error:'Postgres timeout while reading manufacturer records', reqTs:'2026-07-03 04:15:00', resTs:'2026-07-03 04:15:08', logFile:'EM005.log', totalTime:'8s'},
+  {transactionId:'EM006', requester:'pdm.admin', cadPrimary:'CREO_KLA', lastTransactionDate:'2026-07-01 00:00:00', projectCount:27, status:'SUCCESS', error:'', reqTs:'2026-07-02 10:30:42', resTs:'2026-07-02 10:30:57', logFile:'EM006.log', totalTime:'15s'},
+  {transactionId:'EM007', requester:'scheduler', cadPrimary:'CREO_KLA', lastTransactionDate:'2026-06-30 00:00:00', projectCount:46, status:'SUCCESS', error:'', reqTs:'2026-07-01 04:15:00', resTs:'2026-07-01 04:15:17', logFile:'EM007.log', totalTime:'17s'}
+];
+const partTypeLogs = [
+  {transactionId:'PT001', requester:'scheduler', cadPrimary:'SW_KLA', status:'SUCCESS', error:'', reqTs:'2026-07-07 02:00:00', resTs:'2026-07-07 02:00:03', logFile:'PT001.log', totalTime:'3s'},
+  {transactionId:'PT002', requester:'scheduler', cadPrimary:'SW_KLA', status:'FAILED', error:'Postgres timeout while reading part types', reqTs:'2026-07-06 02:00:00', resTs:'2026-07-06 02:00:07', logFile:'PT002.log', totalTime:'7s'},
+  {transactionId:'PT003', requester:'akshay.b', cadPrimary:'CREO_KLA', status:'SUCCESS', error:'', reqTs:'2026-07-05 10:12:25', resTs:'2026-07-05 10:12:30', logFile:'PT003.log', totalTime:'5s'},
+  {transactionId:'PT004', requester:'integration.user', cadPrimary:'SW_KLA', status:'SUCCESS', error:'', reqTs:'2026-07-04 12:18:40', resTs:'2026-07-04 12:18:45', logFile:'PT004.log', totalTime:'5s'},
+  {transactionId:'PT005', requester:'scheduler', cadPrimary:'CREO_KLA', status:'FAILED', error:'Invalid SAP material type mapping found for one part type', reqTs:'2026-07-03 02:00:00', resTs:'2026-07-03 02:00:09', logFile:'PT005.log', totalTime:'9s'},
+  {transactionId:'PT006', requester:'pdm.admin', cadPrimary:'CREO_KLA', status:'SUCCESS', error:'', reqTs:'2026-07-02 09:45:05', resTs:'2026-07-02 09:45:10', logFile:'PT006.log', totalTime:'5s'},
+  {transactionId:'PT007', requester:'scheduler', cadPrimary:'SW_KLA', status:'SUCCESS', error:'', reqTs:'2026-07-01 02:00:00', resTs:'2026-07-01 02:00:04', logFile:'PT007.log', totalTime:'4s'},
+  {transactionId:'PT008', requester:'support.user', cadPrimary:'CREO_KLA', status:'SUCCESS', error:'', reqTs:'2026-06-30 17:10:12', resTs:'2026-06-30 17:10:18', logFile:'PT008.log', totalTime:'6s'}
+];
+const edocProjectsLogs = [
+  {transactionId:'ED001', requester:'scheduler', cadPrimary:'SW_KLA', status:'SUCCESS', error:'', reqTs:'2026-07-07 02:30:00', resTs:'2026-07-07 02:30:08', logFile:'ED001.log', totalTime:'8s'},
+  {transactionId:'ED002', requester:'scheduler', cadPrimary:'SW_KLA', status:'FAILED', error:'Unable to fetch EDOC projects from Postgres', reqTs:'2026-07-06 02:30:00', resTs:'2026-07-06 02:30:06', logFile:'ED002.log', totalTime:'6s'},
+  {transactionId:'ED003', requester:'akshay.b', cadPrimary:'CREO_KLA', status:'SUCCESS', error:'', reqTs:'2026-07-05 08:40:14', resTs:'2026-07-05 08:40:23', logFile:'ED003.log', totalTime:'9s'},
+  {transactionId:'ED004', requester:'integration.user', cadPrimary:'SW_KLA', status:'SUCCESS', error:'', reqTs:'2026-07-04 15:12:28', resTs:'2026-07-04 15:12:37', logFile:'ED004.log', totalTime:'9s'},
+  {transactionId:'ED005', requester:'scheduler', cadPrimary:'CREO_KLA', status:'FAILED', error:'Region ID missing for EDOC project payload', reqTs:'2026-07-03 02:30:00', resTs:'2026-07-03 02:30:07', logFile:'ED005.log', totalTime:'7s'},
+  {transactionId:'ED006', requester:'pdm.admin', cadPrimary:'CREO_KLA', status:'SUCCESS', error:'', reqTs:'2026-07-02 10:02:47', resTs:'2026-07-02 10:02:55', logFile:'ED006.log', totalTime:'8s'},
+  {transactionId:'ED007', requester:'support.user', cadPrimary:'SW_KLA', status:'SUCCESS', error:'', reqTs:'2026-07-01 11:25:34', resTs:'2026-07-01 11:25:43', logFile:'ED007.log', totalTime:'9s'},
+  {transactionId:'ED008', requester:'scheduler', cadPrimary:'SW_KLA', status:'SUCCESS', error:'', reqTs:'2026-06-30 02:30:00', resTs:'2026-06-30 02:30:08', logFile:'ED008.log', totalTime:'8s'}
+];
+const manageEdocProjects = [
+  {edocprojid:'2001', edocprojname:'SEMI Chamber Program', regionid:'10', regionname:'APAC', divid:'100', divname:'Semiconductor', plmproject:'PRJ-APAC-001', state:'Active',updatedate:'2026-07-03 08:20:10',updateby:'mupatil'},
+  {edocprojid:'2002', edocprojname:'Laser Platform Upgrade', regionid:'20', regionname:'NA', divid:'300', divname:'Photonics', plmproject:'PRJ-NA-108', state:'Inactive',updatedate:'2026-07-03 08:20:10',updateby:'mupatil'},
+  {edocprojid:'2003', edocprojname:'Metrology Suite', regionid:'30', regionname:'EMEA', divid:'200', divname:'Inspection', plmproject:'PRJ-EU-204', state:'Active',updatedate:'2026-07-03 08:20:10',updateby:'mupatil'}
+];
+let usersData = [
+  {userId:'mupatil', firstName:'Mukesh', lastName:'Patil', email:'mupatil@kla.com', role:'Admin', defaultPassword:'AdminKLA123', creationDate:'07/01/2026',updatedate:'2026-07-03 08:20:10',updateby:'mupatil'},
+  {userId:'akbhingole', firstName:'Akshay', lastName:'Bhingole', email:'akbhingole@kla.com', role:'Admin', defaultPassword:'AdminKLA123', creationDate:'07/02/2026',updatedate:'2026-07-03 08:20:10',updateby:'mupatil'},
+  {userId:'pnair', firstName:'Priya', lastName:'Nair', email:'pnair@kla.com', role:'Admin', defaultPassword:'AdminKLA123', creationDate:'07/03/2026',updatedate:'2026-07-03 08:20:10',updateby:'mupatil'}
+];
+const partTypes = [
+  {parttypename:'Customer Owned Material', sapmaterialtype:'HALB', isCAD:'FALSE', subparttypes:[]},
+  {parttypename:'Document Part - ZDOC', sapmaterialtype:'', isCAD:'FALSE', subparttypes:[
+    {parttypename:'Design and Fabrication Document', sapmaterialtype:'ZDOC', isCAD:'FALSE', subparttypes:[]},
+    {parttypename:'Manufacturing Document', sapmaterialtype:'ZDOC', isCAD:'FALSE', subparttypes:[]}
+  ]},
+  {parttypename:'Mechanical Assembly', sapmaterialtype:'FERT', isCAD:'TRUE', subparttypes:[
+    {parttypename:'Optics Assembly', sapmaterialtype:'FERT', isCAD:'TRUE', subparttypes:[]}
+  ]}
+];
+
+const $ = (sel) => document.querySelector(sel);
+const $$ = (sel) => Array.from(document.querySelectorAll(sel));
+function safeText(v){ return v === null || v === undefined || v === '' ? '—' : String(v); }
+function statusBadge(status){
+  const s = (status || '').toUpperCase();
+  const map = {'SUCCESS':'status-success','FAILED':'status-failed','PARTIAL':'status-partial','RUNNING':'status-running'};
+  const cls = map[s] || 'status-unknown';
+  return `<span class="badge ${cls}"><span class="pill"></span>${s || 'UNKNOWN'}</span>`;
+}
+function escapeHtml(str){
+  return String(str ?? '').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#39;');
+}
+function setDefaultDateRange(fromId, toId){
+  const today = new Date();
+  const from = new Date(today); from.setDate(today.getDate() - 7);
+  const fmt = d => d.toISOString().slice(0,10);
+  if($(fromId)) $(fromId).value = fmt(from);
+  if($(toId)) $(toId).value = fmt(today);
+}
+const PART_TXN_SEARCH_ENDPOINT = '/api/part-transactions/search';
+let originalTransactions = [];
+let txnServerRows = [];
+function normalizePartTransactionRows(rows){
+  return (Array.isArray(rows) ? rows : []).map(r => ({
+    transactionId: r.transactionId ?? r.transaction_id ?? '',
+    requester: r.requester ?? '',
+    host: r.host ?? '',
+    cadPrimary: r.cadPrimary ?? r.cad_primary ?? '',
+    action: r.action ?? '',
+    parts: r.parts ?? r.noOfParts ?? r.no_of_parts ?? 0,
+    status: (r.status ?? '').toUpperCase(),
+    error: r.error ?? '',
+    requestJson: r.requestJson ?? r.request_json ?? {},
+    responseJson: r.responseJson ?? r.response_json ?? {},
+    reqTs: r.reqTs ?? r.requestTimestamp ?? r.request_timestamp ?? '',
+    resTs: r.resTs ?? r.responseTimestamp ?? r.response_timestamp ?? '',
+    logFile: r.logFile ?? r.log_file ?? '',
+    totalTime: r.totalTime ?? r.executionTotalTime ?? r.execution_total_time ?? ''
+  }));
+}
+function getMockServerFilteredTransactions(){
+  const fromDate = $('#txnServerFrom').value;
+  const toDate = $('#txnServerTo').value;
+  const status = $('#txnServerStatus').value;
+  let rows = [...serverPartTransactions];
+  if(fromDate){ rows = rows.filter(r => toDateOnly(r.reqTs) >= fromDate); }
+  if(toDate){ rows = rows.filter(r => toDateOnly(r.reqTs) <= toDate); }
+  if(status){ rows = rows.filter(r => (r.status || '').toUpperCase() === status); }
+  rows.sort((a,b)=> safeText(b.reqTs).localeCompare(safeText(a.reqTs)));
+  return rows;
+}
+function renderTxnServerTable(){
+  currentTransactions = [...txnServerRows];
+  $('#txnServerTbody').innerHTML = '';
+  txnState.page = 1;
+  renderTxnTable();
+  updateCreatePartKpis();
+}
+async function searchPartTransactionsFromServer(){
+  $('#txnSearch').value=''; $('#txnStatus').value=''; txnState={search:'',status:'',page:1,pageSize:10};
+
+  const fromDate = $('#txnServerFrom').value;
+  const toDate = $('#txnServerTo').value;
+  const status = $('#txnServerStatus').value;
+  const params = new URLSearchParams();
+  if(fromDate) params.append('fromDate', fromDate);
+  if(toDate) params.append('toDate', toDate);
+  if(status) params.append('status', status);
+  try{
+    if(location.protocol === 'file:'){ throw new Error('Local mockup mode'); }
+    const response = await fetch(`${PART_TXN_SEARCH_ENDPOINT}?${params.toString()}`, { method:'GET', headers:{'Accept':'application/json'} });
+    if(!response.ok){ throw new Error(`HTTP ${response.status}`); }
+    const payload = await response.json();
+    const rows = Array.isArray(payload) ? payload : (payload.data || payload.logs || payload.transactions || []);
+    txnServerRows = normalizePartTransactionRows(rows);
+  }catch(err){
+    // Mockup fallback only. Remove this fallback after backend Search endpoint is available.
+    txnServerRows = getMockServerFilteredTransactions();
+  }
+  renderTxnServerTable();
+}
+
+const DASHROLL_SEARCH_ENDPOINT = '/api/dashroll-transactions/search';
+let dashServerRows = [];
+function normalizeDashrollRows(rows){
+  return (Array.isArray(rows) ? rows : []).map(r => ({
+    transactionId: r.transactionId ?? r.transaction_id ?? '',
+    requester: r.requester ?? '',
+    host: r.host ?? '',
+    cadPrimary: r.cadPrimary ?? r.cad_primary ?? '',
+    partNumber: r.partNumber ?? r.part_number ?? '',
+    revision: r.revision ?? '',
+    nextDash: r.nextDash ?? r.next_dash ?? '',
+    description: r.description ?? '',
+    status: (r.status ?? '').toUpperCase(),
+    error: r.error ?? '',
+    requestJson: r.requestJson ?? r.request_json ?? {},
+    responseJson: r.responseJson ?? r.response_json ?? {},
+    reqTs: r.reqTs ?? r.requestTimestamp ?? r.request_timestamp ?? '',
+    resTs: r.resTs ?? r.responseTimestamp ?? r.response_timestamp ?? '',
+    logFile: r.logFile ?? r.log_file ?? '',
+    totalTime: r.totalTime ?? r.executionTotalTime ?? r.execution_total_time ?? ''
+  }));
+}
+function getMockServerFilteredDashrollTransactions(){
+  const fromDate = $('#dashServerFrom').value;
+  const toDate = $('#dashServerTo').value;
+  const status = $('#dashServerStatus').value;
+  let rows = [...serverDashrollTransactions];
+  if(fromDate){ rows = rows.filter(r => toDateOnly(r.reqTs) >= fromDate); }
+  if(toDate){ rows = rows.filter(r => toDateOnly(r.reqTs) <= toDate); }
+  if(status){ rows = rows.filter(r => (r.status || '').toUpperCase() === status); }
+  rows.sort((a,b)=> safeText(b.reqTs).localeCompare(safeText(a.reqTs)));
+  return rows;
+}
+function renderDashServerTable(){
+  currentDashrollTransactions = [...dashServerRows];
+  $('#dashServerTbody').innerHTML = '';
+  dashState.page = 1;
+  renderDashTable();
+  updateDashKpis();
+}
+async function searchDashrollTransactionsFromServer(){
+  $('#dashSearch').value=''; $('#dashStatus').value=''; dashState={search:'',status:'',page:1,pageSize:10};
+
+  const fromDate = $('#dashServerFrom').value;
+  const toDate = $('#dashServerTo').value;
+  const status = $('#dashServerStatus').value;
+  const params = new URLSearchParams();
+  if(fromDate) params.append('fromDate', fromDate);
+  if(toDate) params.append('toDate', toDate);
+  if(status) params.append('status', status);
+  try{
+    if(location.protocol === 'file:'){ throw new Error('Local mockup mode'); }
+    const response = await fetch(`${DASHROLL_SEARCH_ENDPOINT}?${params.toString()}`, { method:'GET', headers:{'Accept':'application/json'} });
+    if(!response.ok){ throw new Error(`HTTP ${response.status}`); }
+    const payload = await response.json();
+    const rows = Array.isArray(payload) ? payload : (payload.data || payload.logs || payload.transactions || []);
+    dashServerRows = normalizeDashrollRows(rows);
+  }catch(err){
+    // Mockup fallback only. Remove this fallback after backend Search endpoint is available.
+    dashServerRows = getMockServerFilteredDashrollTransactions();
+  }
+  renderDashServerTable();
+}
+function toDateOnly(value){ if(!value) return ''; return value.slice(0,10); }
+
+function setActiveView(viewName){
+  $$('#nav a[data-view]').forEach(a => a.classList.toggle('active', a.dataset.view === viewName));
+  $$('.view').forEach(v => v.classList.remove('active'));
+  const target = document.getElementById('view-' + viewName);
+  if(target) target.classList.add('active');
+  if(location.hash !== '#' + viewName) history.replaceState(null, '', '#' + viewName);
+}
+$$('#nav a[data-view]').forEach(a => a.addEventListener('click', e => { e.preventDefault(); setActiveView(a.dataset.view); }));
+function routeFromHash(){
+  const h = (location.hash || '#create-part').replace('#','');
+  const valid = ['create-part','dashroll','upload','backflow','search','master-data','higher-dash','get-co','enovia-projects','enovia-manufacturers','part-type-logs','edoc-projects','manage-part-types','manage-edoc-projects','users'];
+  setActiveView(valid.includes(h) ? h : 'create-part');
+}
+window.addEventListener('hashchange', routeFromHash);
+
+const modal = $('#jsonModal');
+const jsonCode = $('#jsonCode');
+const jsonTitle = $('#jsonTitle');
+let modalRaw = '';
+function openJsonModal(title, objOrText){
+  jsonTitle.textContent = title;
+  try{ modalRaw = typeof objOrText === 'string' ? JSON.stringify(JSON.parse(objOrText), null, 2) : JSON.stringify(objOrText, null, 2); }
+  catch(err){ modalRaw = String(objOrText); }
+  jsonCode.textContent = modalRaw; modal.classList.add('show'); $('#jsonClose').focus();
+}
+function closeJsonModal(){ modal.classList.remove('show'); jsonCode.textContent = ''; }
+$('#jsonClose').addEventListener('click', closeJsonModal);
+modal.addEventListener('click', e => { if(e.target === modal) closeJsonModal(); });
+document.addEventListener('keydown', e => { if(e.key === 'Escape' && modal.classList.contains('show')) closeJsonModal(); });
+$('#jsonCopy').addEventListener('click', async () => {
+  try{ await navigator.clipboard.writeText(modalRaw); $('#jsonCopy').textContent='Copied'; setTimeout(()=>$('#jsonCopy').textContent='Copy',900); }
+  catch(e){ const ta=document.createElement('textarea'); ta.value=modalRaw; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove(); }
+});
+
+function renderSimpleTable({tbodyId, rows, rowBuilder, emptyCols}){
+  $(tbodyId).innerHTML = rows.map(rowBuilder).join('') || `<tr><td colspan="${emptyCols}" style="padding:16px;color:var(--muted)">No rows match your filters.</td></tr>`;
+}
+
+
+let currentTransactions = [...transactions];
+let currentDashrollTransactions = [...dashrollTransactions];
+let currentUploadTransactions = [...uploadTransactions];
+let currentBackflowTransactions = [...backflowTransactions];
+let currentSearchTransactions = [...searchTransactions];
+let txnState = {search:'',status:'',page:1,pageSize:10};
+function getFilteredTxns(){
+  let rows = [...currentTransactions];
+  if(txnState.search){ const q = txnState.search.toLowerCase(); rows = rows.filter(r => [r.transactionId,r.requester,r.host,r.error,r.action,r.status].filter(Boolean).some(v => String(v).toLowerCase().includes(q))); }
+  if(txnState.status){ rows = rows.filter(r => (r.status||'').toUpperCase() === txnState.status); }
+  rows.sort((a,b)=> safeText(b.reqTs).localeCompare(safeText(a.reqTs))); return rows;
+}
+function updateCreatePartKpis(){
+  $('#kpiTotalParts').textContent = String(currentTransactions.reduce((sum,r)=> sum + (Number(r.parts)||0), 0));
+  $('#kpiSuccess').textContent = String(currentTransactions.filter(r => r.status==='SUCCESS').length);
+  $('#kpiPartial').textContent = String(currentTransactions.filter(r => r.status==='PARTIAL').length);
+  $('#kpiFailed').textContent = String(currentTransactions.filter(r => r.status==='FAILED').length);
+}
+function renderTxnTable(){
+  const rows = getFilteredTxns(); const total = rows.length; const pages = Math.max(1, Math.ceil(total / txnState.pageSize));
+  txnState.page = Math.min(txnState.page, pages); const startIdx = (txnState.page - 1) * txnState.pageSize; const endIdx = Math.min(startIdx + txnState.pageSize, total); const slice = rows.slice(startIdx, endIdx);
+  $('#txnTbody').innerHTML = slice.map(r => {
+    const err = r.error ? `<span title="${escapeHtml(safeText(r.error))}">${escapeHtml(safeText(r.error).slice(0,60))}${safeText(r.error).length>60?'…':''}</span>` : '—';
+    return `<tr><td class="mono">${safeText(r.transactionId)}</td><td>${safeText(r.requester)}</td><td>${safeText(r.host)}</td><td>${safeText(r.cadPrimary)}</td><td>${safeText(r.action)}</td><td>${safeText(r.parts)}</td><td>${statusBadge(r.status)}</td><td>${err}</td><td><span class="link" data-json="request" data-scope="txn" data-id="${safeText(r.transactionId)}">View</span></td><td><span class="link" data-json="response" data-scope="txn" data-id="${safeText(r.transactionId)}">View</span></td><td>${safeText(r.reqTs)}</td><td>${safeText(r.resTs)}</td><td class="mono">${safeText(r.logFile)}</td><td>${safeText(r.totalTime)}</td></tr>`;
+  }).join('') || `<tr><td colspan="14" style="padding:16px;color:var(--muted)">No transactions match your filters.</td></tr>`;
+  $('#txnPage').textContent = String(txnState.page); $('#txnPages').textContent = String(pages); $('#txnPrev').disabled = txnState.page <= 1; $('#txnNext').disabled = txnState.page >= pages;
+  $('#txnMeta').textContent = total===0 ? 'Showing 0–0 of 0' : `Showing ${startIdx+1}–${endIdx} of ${total}`;
+}
+$('#txnSearch').addEventListener('input', e => { txnState.search=e.target.value; txnState.page=1; renderTxnTable(); });
+$('#txnStatus').addEventListener('change', e => { txnState.status=e.target.value; txnState.page=1; renderTxnTable(); });
+$('#txnReset').addEventListener('click', () => {
+  $('#txnSearch').value=''; $('#txnStatus').value='';  $('#txnServerStatus').value='';
+  txnState={search:'',status:'',page:1,pageSize:10};
+  setDefaultDateRange('#txnServerFrom', '#txnServerTo');
+  searchPartTransactionsFromServer();
+});
+$('#txnPrev').addEventListener('click', ()=>{ txnState.page=Math.max(1, txnState.page-1); renderTxnTable(); });
+$('#txnNext').addEventListener('click', ()=>{ txnState.page=txnState.page+1; renderTxnTable(); });
+$('#txnServerSearchBtn').addEventListener('click', searchPartTransactionsFromServer);
+
+let detailState = {search:'', status:''};
+function renderDetails(){
+  let rows = [...details];
+  if(detailState.search){ const q = detailState.search.toLowerCase(); rows = rows.filter(r => [r.transactionId,r.instanceId,r.partNumber,r.fileName,r.project,r.mfr,r.error,r.status].filter(Boolean).some(v => String(v).toLowerCase().includes(q))); }
+  if(detailState.status){ rows = rows.filter(r => (r.status||'').toUpperCase() === detailState.status); }
+  renderSimpleTable({tbodyId:'#detailTbody', rows, emptyCols:9, rowBuilder:r => `<tr><td class="mono">${safeText(r.transactionId)}</td><td class="mono">${safeText(r.instanceId)}</td><td class="mono">${safeText(r.partNumber)}</td><td>${safeText(r.fileName)}</td><td>${safeText(r.project)}</td><td>${safeText(r.mfr)}</td><td>${safeText(r.action)}</td><td>${statusBadge(r.status)}</td><td>${safeText(r.error)}</td></tr>`});
+}
+$('#detailSearch').addEventListener('input', e => { detailState.search=e.target.value; renderDetails(); });
+$('#detailStatus').addEventListener('change', e => { detailState.status=e.target.value; renderDetails(); });
+$('#detailReset').addEventListener('click', ()=>{ detailState={search:'',status:''}; $('#detailSearch').value=''; $('#detailStatus').value=''; renderDetails(); });
+
+let logState = {search:'',status:''};
+function renderLogs(){
+  let rows = [...componentLogs];
+  if(logState.search){ const q = logState.search.toLowerCase(); rows = rows.filter(r => [r.transactionId,r.component,r.message,r.status,r.ts].filter(Boolean).some(v => String(v).toLowerCase().includes(q))); }
+  if(logState.status){ rows = rows.filter(r => (r.status||'').toUpperCase() === logState.status); }
+  renderSimpleTable({tbodyId:'#logTbody', rows, emptyCols:5, rowBuilder:r => `<tr><td class="mono">${safeText(r.transactionId)}</td><td>${safeText(r.component)}</td><td>${statusBadge(r.status)}</td><td>${safeText(r.message)}</td><td>${safeText(r.ts)}</td></tr>`});
+}
+$('#logSearch').addEventListener('input', e => { logState.search=e.target.value; renderLogs(); });
+$('#logStatus').addEventListener('change', e => { logState.status=e.target.value; renderLogs(); });
+$('#logReset').addEventListener('click', ()=>{ logState={search:'',status:''}; $('#logSearch').value=''; $('#logStatus').value=''; renderLogs(); });
+
+let dashState = {search:'', status:'', page:1, pageSize:10};
+function updateDashKpis(){
+  $('#dashKpiTotal').textContent = String(currentDashrollTransactions.length);
+  $('#dashKpiSuccess').textContent = String(currentDashrollTransactions.filter(r => r.status==='SUCCESS').length);
+  $('#dashKpiFailed').textContent = String(currentDashrollTransactions.filter(r => r.status==='FAILED').length);
+}
+function getFilteredDash(){
+  let rows = [...currentDashrollTransactions];
+  if(dashState.search){ const q = dashState.search.toLowerCase(); rows = rows.filter(r => [r.transactionId,r.requester,r.host,r.partNumber,r.revision,r.nextDash,r.description,r.error].filter(Boolean).some(v => String(v).toLowerCase().includes(q))); }
+  if(dashState.status){ rows = rows.filter(r => (r.status||'').toUpperCase() === dashState.status); }
+  rows.sort((a,b)=> safeText(b.reqTs).localeCompare(safeText(a.reqTs))); return rows;
+}
+function renderDashTable(){
+  const rows = getFilteredDash(); const total = rows.length; const pages = Math.max(1, Math.ceil(total / dashState.pageSize));
+  dashState.page = Math.min(dashState.page, pages); const startIdx = (dashState.page - 1) * dashState.pageSize; const endIdx = Math.min(startIdx + dashState.pageSize, total); const slice = rows.slice(startIdx, endIdx);
+  $('#dashTbody').innerHTML = slice.map(r => `<tr><td class="mono">${safeText(r.transactionId)}</td><td>${safeText(r.requester)}</td><td>${safeText(r.host)}</td><td>${safeText(r.cadPrimary)}</td><td class="mono">${safeText(r.partNumber)}</td><td>${safeText(r.revision)}</td><td>${safeText(r.nextDash)}</td><td>${safeText(r.description)}</td><td>${statusBadge(r.status)}</td><td>${safeText(r.error)}</td><td><span class="link" data-json="request" data-scope="dash" data-id="${safeText(r.transactionId)}">View</span></td><td><span class="link" data-json="response" data-scope="dash" data-id="${safeText(r.transactionId)}">View</span></td><td>${safeText(r.reqTs)}</td><td>${safeText(r.resTs)}</td><td class="mono">${safeText(r.logFile)}</td><td>${safeText(r.totalTime)}</td></tr>`).join('') || `<tr><td colspan="16" style="padding:16px;color:var(--muted)">No dashroll transactions match your filters.</td></tr>`;
+  $('#dashPage').textContent = String(dashState.page); $('#dashPages').textContent = String(pages); $('#dashPrev').disabled = dashState.page <= 1; $('#dashNext').disabled = dashState.page >= pages;
+  $('#dashMeta').textContent = total===0 ? 'Showing 0–0 of 0' : `Showing ${startIdx+1}–${endIdx} of ${total}`;
+}
+$('#dashSearch').addEventListener('input', e => { dashState.search=e.target.value; dashState.page=1; renderDashTable(); });
+$('#dashStatus').addEventListener('change', e => { dashState.status=e.target.value; dashState.page=1; renderDashTable(); });
+$('#dashReset').addEventListener('click', ()=>{
+  $('#dashSearch').value=''; $('#dashStatus').value=''; $('#dashServerStatus').value='';
+  dashState={search:'',status:'',page:1,pageSize:10};
+  setDefaultDateRange('#dashServerFrom', '#dashServerTo');
+  searchDashrollTransactionsFromServer();
+});
+$('#dashPrev').addEventListener('click', ()=>{ dashState.page=Math.max(1, dashState.page-1); renderDashTable(); });
+$('#dashNext').addEventListener('click', ()=>{ dashState.page=dashState.page+1; renderDashTable(); });
+$('#dashServerSearchBtn').addEventListener('click', searchDashrollTransactionsFromServer);
+
+let dashLogState = {search:'',status:''};
+function renderDashLogs(){
+  let rows = [...dashrollComponentLogs];
+  if(dashLogState.search){ const q = dashLogState.search.toLowerCase(); rows = rows.filter(r => [r.transactionId,r.component,r.message,r.status,r.ts].filter(Boolean).some(v => String(v).toLowerCase().includes(q))); }
+  if(dashLogState.status){ rows = rows.filter(r => (r.status||'').toUpperCase() === dashLogState.status); }
+  renderSimpleTable({tbodyId:'#dashLogTbody', rows, emptyCols:5, rowBuilder:r => `<tr><td class="mono">${safeText(r.transactionId)}</td><td>${safeText(r.component)}</td><td>${statusBadge(r.status)}</td><td>${safeText(r.message)}</td><td>${safeText(r.ts)}</td></tr>`});
+}
+$('#dashLogSearch').addEventListener('input', e => { dashLogState.search=e.target.value; renderDashLogs(); });
+$('#dashLogStatus').addEventListener('change', e => { dashLogState.status=e.target.value; renderDashLogs(); });
+$('#dashLogReset').addEventListener('click', ()=>{ dashLogState={search:'',status:''}; $('#dashLogSearch').value=''; $('#dashLogStatus').value=''; renderDashLogs(); });
+
+
+const UPLOAD_SEARCH_ENDPOINT = '/api/upload-transactions/search';
+let uploadServerRows = [];
+let uploadState = {search:'', status:'', page:1, pageSize:10};
+function normalizeUploadRows(rows){  
+  return (Array.isArray(rows) ? rows : []).map(r => ({  
+    transactionId: r.transactionId ?? r.transaction_id ?? '',  
+    requester: r.requester ?? '',  
+    host: r.host ?? '',  
+    cadPrimary: r.cadPrimary ?? r.cad_primary ?? '',  
+    cadIdentifier: r.cadIdentifier ?? r.cad_identifier ?? '',  
+    coName: r.coName ?? r.co_name ?? r.coNumber ?? r.co_number ?? '',  
+    parts: r.parts ?? r.noOfParts ?? r.no_of_parts ?? 0,  
+    files: r.files ?? r.noOfFiles ?? r.no_of_files ?? 0,  
+    status: (r.status ?? '').toUpperCase(),  
+    requestJson: r.requestJson ?? r.request_json ?? {},  
+    responseJson: r.responseJson ?? r.response_json ?? {},  
+    reqTs: r.reqTs ?? r.requestTimestamp ?? r.request_timestamp ?? '',  
+    resTs: r.resTs ?? r.responseTimestamp ?? r.response_timestamp ?? '',  
+    logFile: r.logFile ?? r.log_file ?? '',  
+    totalTime: r.totalTime ?? r.executionTotalTime ?? r.execution_total_time ?? ''  
+  }));  
+}
+function getMockServerFilteredUploadTransactions(){
+  const fromDate = $('#uploadServerFrom').value;
+  const toDate = $('#uploadServerTo').value;
+  const status = $('#uploadServerStatus').value;
+  let rows = [...serverUploadTransactions];
+  if(fromDate){ rows = rows.filter(r => toDateOnly(r.reqTs) >= fromDate); }
+  if(toDate){ rows = rows.filter(r => toDateOnly(r.reqTs) <= toDate); }
+  if(status){ rows = rows.filter(r => (r.status || '').toUpperCase() === status); }
+  rows.sort((a,b)=> safeText(b.reqTs).localeCompare(safeText(a.reqTs)));
+  return rows;
+}
+function updateUploadKpis(rows = uploadServerRows){
+  $('#uploadKpiTotal').textContent = String(rows.reduce((sum,r)=> sum + (Number(r.parts)||0), 0));
+  $('#uploadKpiSuccess').textContent = String(rows.filter(r => r.status === 'SUCCESS').length);
+  $('#uploadKpiFailed').textContent = String(rows.filter(r => r.status === 'FAILED').length);
+}
+function renderUploadServerTable(){
+  currentUploadTransactions = [...uploadServerRows];
+  $('#uploadServerTbody').innerHTML = '';
+  uploadState.page = 1;
+  updateUploadKpis(currentUploadTransactions);
+  renderUploadTable();
+}
+async function searchUploadTransactionsFromServer(){
+  $('#uploadSearch').value=''; $('#uploadStatus').value=''; uploadState={search:'',status:'',page:1,pageSize:10};
+
+  const fromDate = $('#uploadServerFrom').value;
+  const toDate = $('#uploadServerTo').value;
+  const status = $('#uploadServerStatus').value;
+  const params = new URLSearchParams();
+  if(fromDate) params.append('fromDate', fromDate);
+  if(toDate) params.append('toDate', toDate);
+  if(status) params.append('status', status);
+  try{
+    if(location.protocol === 'file:'){ throw new Error('Local mockup mode'); }
+    const response = await fetch(`${UPLOAD_SEARCH_ENDPOINT}?${params.toString()}`, { method:'GET', headers:{'Accept':'application/json'} });
+    if(!response.ok){ throw new Error(`HTTP ${response.status}`); }
+    const payload = await response.json();
+    const rows = Array.isArray(payload) ? payload : (payload.data || payload.logs || payload.transactions || []);
+    uploadServerRows = normalizeUploadRows(rows);
+  }catch(err){
+    // Mockup fallback only. Remove this fallback after backend Search endpoint is available.
+    uploadServerRows = getMockServerFilteredUploadTransactions();
+  }
+  renderUploadServerTable();
+}
+function getFilteredUploadClientRows(){
+  let rows = [...currentUploadTransactions];
+  if(uploadState.search){
+    const q = uploadState.search.toLowerCase();
+    rows = rows.filter(r => [r.transactionId,r.requester,r.host,r.cadPrimary,r.cadIdentifier,r.coName,r.status].filter(Boolean).some(v => String(v).toLowerCase().includes(q)));
+  }
+  if(uploadState.status){ rows = rows.filter(r => (r.status || '').toUpperCase() === uploadState.status); }
+  rows.sort((a,b)=> safeText(b.reqTs).localeCompare(safeText(a.reqTs)));
+  return rows;
+}
+function renderUploadTable(){
+  const rows = getFilteredUploadClientRows();
+  const total = rows.length;
+  const pages = Math.max(1, Math.ceil(total / uploadState.pageSize));
+  uploadState.page = Math.min(uploadState.page, pages);
+  const startIdx = (uploadState.page - 1) * uploadState.pageSize;
+  const endIdx = Math.min(startIdx + uploadState.pageSize, total);
+  const slice = rows.slice(startIdx, endIdx);
+  $('#uploadTbody').innerHTML = slice.map(r => {
+    return `<tr><td class="mono">${safeText(r.transactionId)}</td><td>${safeText(r.requester)}</td><td>${safeText(r.host)}</td><td>${safeText(r.cadPrimary)}</td><td class="mono">${safeText(r.cadIdentifier)}</td><td class="mono">${safeText(r.coName)}</td><td>${safeText(r.parts)}</td><td>${safeText(r.files)}</td><td>${statusBadge(r.status)}</td><td><span class="link" data-json="request" data-scope="upload" data-id="${safeText(r.transactionId)}">View</span></td><td><span class="link" data-json="response" data-scope="upload" data-id="${safeText(r.transactionId)}">View</span></td><td>${safeText(r.reqTs)}</td><td>${safeText(r.resTs)}</td><td class="mono">${safeText(r.logFile)}</td><td>${safeText(r.totalTime)}</td></tr>`;
+  }).join('') || `<tr><td colspan="15" style="padding:16px;color:var(--muted)">No upload transactions match your filters.</td></tr>`;
+  $('#uploadPage').textContent = String(uploadState.page);
+  $('#uploadPages').textContent = String(pages);
+  $('#uploadPrev').disabled = uploadState.page <= 1;
+  $('#uploadNext').disabled = uploadState.page >= pages;
+  $('#uploadMeta').textContent = total===0 ? 'Showing 0–0 of 0' : `Showing ${startIdx+1}–${endIdx} of ${total}`;
+  renderUploadFileDetails();
+}
+$('#uploadSearch').addEventListener('input', e => { uploadState.search=e.target.value; uploadState.page=1; renderUploadTable(); });
+$('#uploadStatus').addEventListener('change', e => { uploadState.status=e.target.value; uploadState.page=1; renderUploadTable(); });
+$('#uploadReset').addEventListener('click', ()=>{
+  $('#uploadSearch').value=''; $('#uploadStatus').value=''; $('#uploadServerStatus').value='';
+  uploadState={search:'',status:'',page:1,pageSize:10};
+  setDefaultDateRange('#uploadServerFrom', '#uploadServerTo');
+  searchUploadTransactionsFromServer();
+});
+$('#uploadPrev').addEventListener('click', ()=>{ uploadState.page=Math.max(1, uploadState.page-1); renderUploadTable(); });
+$('#uploadNext').addEventListener('click', ()=>{ uploadState.page=uploadState.page+1; renderUploadTable(); });
+$('#uploadServerSearchBtn').addEventListener('click', searchUploadTransactionsFromServer);
+
+
+function renderUploadFileDetails(){
+  const txnIds = new Set(getFilteredUploadClientRows().map(r => r.transactionId));
+  let rows = uploadFileTransactionDetails.filter(r => txnIds.has(r.transactionId));
+  rows.sort((a,b)=> safeText(a.transactionId).localeCompare(safeText(b.transactionId)) || safeText(a.instanceId).localeCompare(safeText(b.instanceId)));
+  renderSimpleTable({tbodyId:'#uploadDetailTbody', rows, emptyCols:9, rowBuilder:r => `<tr><td class="mono">${safeText(r.transactionId)}</td><td class="mono">${safeText(r.instanceId)}</td><td class="mono">${safeText(r.partNumber)}</td><td>${safeText(r.partRevision)}</td><td>${safeText(r.fileNames)}</td><td>${statusBadge(r.pdmUpdateStatus)}</td><td>${safeText(r.pdmUpdateMessage)}</td><td>${statusBadge(r.status)}</td><td>${safeText(r.message)}</td></tr>`});
+}
+let uploadLogState = {search:'',status:''};
+function renderUploadLogs(){
+  let rows = [...uploadComponentLogs];
+  if(uploadLogState.search){
+    const q = uploadLogState.search.toLowerCase();
+    rows = rows.filter(r => [r.transactionId,r.component,r.message,r.status,r.ts].filter(Boolean).some(v => String(v).toLowerCase().includes(q)));
+  }
+  if(uploadLogState.status){ rows = rows.filter(r => (r.status || '').toUpperCase() === uploadLogState.status); }
+  renderSimpleTable({tbodyId:'#uploadLogTbody', rows, emptyCols:5, rowBuilder:r => `<tr><td class="mono">${safeText(r.transactionId)}</td><td>${safeText(r.component)}</td><td>${statusBadge(r.status)}</td><td>${safeText(r.message)}</td><td>${safeText(r.ts)}</td></tr>`});
+}
+$('#uploadLogSearch').addEventListener('input', e => { uploadLogState.search=e.target.value; renderUploadLogs(); });
+$('#uploadLogStatus').addEventListener('change', e => { uploadLogState.status=e.target.value; renderUploadLogs(); });
+$('#uploadLogReset').addEventListener('click', ()=>{ uploadLogState={search:'',status:''}; $('#uploadLogSearch').value=''; $('#uploadLogStatus').value=''; renderUploadLogs(); });
+
+const BACKFLOW_SEARCH_ENDPOINT = '/api/backflow/search';
+let backflowServerRows = [];
+let backflowState = {search:'', page:1, pageSize:10};
+function normalizeBackflowRows(rows){
+  return (Array.isArray(rows) ? rows : []).map(r => ({
+    id: r.id ?? r.rowId ?? r.row_id ?? '',
+    transactionId: r.transactionId ?? r.transaction_id ?? '',
+    partName: r.partName ?? r.part_name ?? r.partNumber ?? r.part_number ?? '',
+    pdmVault: r.pdmVault ?? r.pdm_vault ?? '',
+    jsonData: r.jsonData ?? r.json_data ?? {},
+    enoviaUpdateTs: r.enoviaUpdateTs ?? r.enovia_update_ts ?? '',
+    pdmUpdateTs: r.pdmUpdateTs ?? r.pdm_update_ts ?? '',
+    pdmUpdateStatus: (r.pdmUpdateStatus ?? r.pdm_update_status ?? '').toUpperCase()
+  }));
+}
+function getMockServerFilteredBackflowTransactions(){
+  const fromDate = $('#backflowServerFrom').value;
+  const toDate = $('#backflowServerTo').value;
+  const vault = $('#backflowServerVault').value;
+  const status = $('#backflowServerStatus').value;
+  let rows = [...serverBackflowTransactions];
+  if(fromDate){ rows = rows.filter(r => toDateOnly(r.enoviaUpdateTs) >= fromDate); }
+  if(toDate){ rows = rows.filter(r => toDateOnly(r.enoviaUpdateTs) <= toDate); }
+  if(vault){ rows = rows.filter(r => (r.pdmVault || '').toUpperCase() === vault); }
+  if(status){ rows = rows.filter(r => (r.pdmUpdateStatus || '').toUpperCase() === status); }
+  rows.sort((a,b)=> safeText(b.enoviaUpdateTs).localeCompare(safeText(a.enoviaUpdateTs)));
+  return rows;
+}
+function renderBackflowServerTable(){
+  currentBackflowTransactions = [...backflowServerRows];
+  $('#backflowServerTbody').innerHTML = '';
+  backflowState.page = 1;
+  renderBackflowTable();
+}
+async function searchBackflowTransactionsFromServer(){
+  $('#backflowSearch').value=''; backflowState={search:'',page:1,pageSize:10};
+
+  const fromDate = $('#backflowServerFrom').value;
+  const toDate = $('#backflowServerTo').value;
+  const vault = $('#backflowServerVault').value;
+  const status = $('#backflowServerStatus').value;
+  const params = new URLSearchParams();
+  if(fromDate) params.append('fromDate', fromDate);
+  if(toDate) params.append('toDate', toDate);
+  if(vault) params.append('pdmVault', vault);
+  if(status) params.append('pdmUpdateStatus', status);
+  try{
+    if(location.protocol === 'file:'){ throw new Error('Local mockup mode'); }
+    const response = await fetch(`${BACKFLOW_SEARCH_ENDPOINT}?${params.toString()}`, { method:'GET', headers:{'Accept':'application/json'} });
+    if(!response.ok){ throw new Error(`HTTP ${response.status}`); }
+    const payload = await response.json();
+    const rows = Array.isArray(payload) ? payload : (payload.data || payload.logs || payload.transactions || []);
+    backflowServerRows = normalizeBackflowRows(rows);
+  }catch(err){
+    // Mockup fallback only. Remove this fallback after backend Search endpoint is available.
+    backflowServerRows = getMockServerFilteredBackflowTransactions();
+  }
+  renderBackflowServerTable();
+}
+function getFilteredBackflowClientRows(){
+  let rows = [...currentBackflowTransactions];
+  if(backflowState.search){
+    const q = backflowState.search.toLowerCase();
+    rows = rows.filter(r => [r.partName,r.pdmVault,r.pdmUpdateStatus,r.transactionId].filter(Boolean).some(v => String(v).toLowerCase().includes(q)));
+  }
+  rows.sort((a,b)=> safeText(b.enoviaUpdateTs).localeCompare(safeText(a.enoviaUpdateTs)));
+  return rows;
+}
+function renderBackflowTable(){
+  const rows = getFilteredBackflowClientRows();
+  const total = rows.length;
+  const pages = Math.max(1, Math.ceil(total / backflowState.pageSize));
+  backflowState.page = Math.min(backflowState.page, pages);
+  const startIdx = (backflowState.page - 1) * backflowState.pageSize;
+  const endIdx = Math.min(startIdx + backflowState.pageSize, total);
+  const slice = rows.slice(startIdx, endIdx);
+  $('#backflowTbody').innerHTML = slice.map(r => `<tr><td class="mono">${safeText(r.id)}</td><td class="mono">${safeText(r.transactionId)}</td><td class="mono">${safeText(r.partName)}</td><td>${safeText(r.pdmVault)}</td><td><span class="link" data-json="backflow" data-scope="backflow" data-id="${safeText(r.transactionId)}">View</span></td><td>${safeText(r.enoviaUpdateTs)}</td><td>${safeText(r.pdmUpdateTs)}</td><td>${statusBadge(r.pdmUpdateStatus)}</td></tr>`).join('') || `<tr><td colspan="8" style="padding:16px;color:var(--muted)">No backflow data matches your filters.</td></tr>`;
+  $('#backflowPage').textContent = String(backflowState.page);
+  $('#backflowPages').textContent = String(pages);
+  $('#backflowPrev').disabled = backflowState.page <= 1;
+  $('#backflowNext').disabled = backflowState.page >= pages;
+  $('#backflowMeta').textContent = total===0 ? 'Showing 0–0 of 0' : `Showing ${startIdx+1}–${endIdx} of ${total}`;
+}
+$('#backflowSearch').addEventListener('input', e => { backflowState.search=e.target.value; backflowState.page=1; renderBackflowTable(); });
+$('#backflowReset').addEventListener('click', ()=>{
+  $('#backflowSearch').value=''; $('#backflowServerVault').value=''; $('#backflowServerStatus').value='';
+  backflowState={search:'',page:1,pageSize:10};
+  setDefaultDateRange('#backflowServerFrom', '#backflowServerTo');
+  searchBackflowTransactionsFromServer();
+});
+$('#backflowPrev').addEventListener('click', ()=>{ backflowState.page=Math.max(1, backflowState.page-1); renderBackflowTable(); });
+$('#backflowNext').addEventListener('click', ()=>{ backflowState.page=backflowState.page+1; renderBackflowTable(); });
+$('#backflowServerSearchBtn').addEventListener('click', searchBackflowTransactionsFromServer);
+function bindSimpleSearch(inputId, resetId, data, tbodyId, emptyCols, rowBuilder, fields){
+  const render = () => {
+    const q = $(inputId).value.trim().toLowerCase();
+    const rows = !q ? data : data.filter(r => fields.some(f => String(r[f] ?? '').toLowerCase().includes(q)));
+    renderSimpleTable({tbodyId, rows, emptyCols, rowBuilder});
+  };
+  $(inputId).addEventListener('input', render);
+  $(resetId).addEventListener('click', () => { $(inputId).value=''; render(); });
+  render();
+}
+
+
+const SEARCH_LOGS_ENDPOINT = '/api/search-transactions/search';
+let searchServerRows = [];
+let searchTxnState = {search:'', page:1, pageSize:10};
+function normalizeSearchRows(rows){
+  return (Array.isArray(rows) ? rows : []).map(r => ({
+    transactionId: r.transactionId ?? r.transaction_id ?? '',
+    requester: r.requester ?? '',
+    host: r.host ?? '',
+    cadPrimary: r.cadPrimary ?? r.cad_primary ?? '',
+    parts: r.parts ?? r.noOfParts ?? r.no_of_parts ?? 0,
+    status: (r.status ?? '').toUpperCase(),
+    error: r.error ?? '',
+    requestJson: r.requestJson ?? r.request_json ?? {},
+    reqTs: r.reqTs ?? r.requestTimestamp ?? r.request_timestamp ?? '',
+    resTs: r.resTs ?? r.responseTimestamp ?? r.response_timestamp ?? '',
+    logFile: r.logFile ?? r.log_file ?? '',
+    totalTime: r.totalTime ?? r.executionTotalTime ?? r.execution_total_time ?? ''
+  }));
+}
+function getMockServerFilteredSearchTransactions(){
+  const fromDate = $('#searchServerFrom').value;
+  const toDate = $('#searchServerTo').value;
+  let rows = [...serverSearchTransactions];
+  if(fromDate){ rows = rows.filter(r => toDateOnly(r.reqTs) >= fromDate); }
+  if(toDate){ rows = rows.filter(r => toDateOnly(r.reqTs) <= toDate); }
+  rows.sort((a,b)=> safeText(b.reqTs).localeCompare(safeText(a.reqTs)));
+  return rows;
+}
+function renderSearchServerTable(){
+  currentSearchTransactions = [...searchServerRows];
+  $('#searchServerTbody').innerHTML = '';
+  searchTxnState.page = 1;
+  renderSearchTable();
+}
+async function searchLogsFromServer(){
+  $('#searchTxnSearch').value=''; searchTxnState={search:'',page:1,pageSize:10};
+
+  const fromDate = $('#searchServerFrom').value;
+  const toDate = $('#searchServerTo').value;
+  const params = new URLSearchParams();
+  if(fromDate) params.append('fromDate', fromDate);
+  if(toDate) params.append('toDate', toDate);
+  try{
+    if(location.protocol === 'file:'){ throw new Error('Local mockup mode'); }
+    const response = await fetch(`${SEARCH_LOGS_ENDPOINT}?${params.toString()}`, { method:'GET', headers:{'Accept':'application/json'} });
+    if(!response.ok){ throw new Error(`HTTP ${response.status}`); }
+    const payload = await response.json();
+    const rows = Array.isArray(payload) ? payload : (payload.data || payload.logs || payload.transactions || []);
+    searchServerRows = normalizeSearchRows(rows);
+  }catch(err){
+    // Mockup fallback only. Remove this fallback after backend Search endpoint is available.
+    searchServerRows = getMockServerFilteredSearchTransactions();
+  }
+  renderSearchServerTable();
+}
+function getFilteredSearchClientRows(){
+  let rows = [...currentSearchTransactions];
+  if(searchTxnState.search){
+    const q = searchTxnState.search.toLowerCase();
+    rows = rows.filter(r => [r.transactionId,r.requester,r.host,r.error,r.status].filter(Boolean).some(v => String(v).toLowerCase().includes(q)));
+  }
+  rows.sort((a,b)=> safeText(b.reqTs).localeCompare(safeText(a.reqTs)));
+  return rows;
+}
+function renderSearchTable(){
+  const rows = getFilteredSearchClientRows();
+  const total = rows.length;
+  const pages = Math.max(1, Math.ceil(total / searchTxnState.pageSize));
+  searchTxnState.page = Math.min(searchTxnState.page, pages);
+  const startIdx = (searchTxnState.page - 1) * searchTxnState.pageSize;
+  const endIdx = Math.min(startIdx + searchTxnState.pageSize, total);
+  const slice = rows.slice(startIdx, endIdx);
+  $('#searchTxnTbody').innerHTML = slice.map(r => {
+    const err = r.error ? `<span title="${escapeHtml(safeText(r.error))}">${escapeHtml(safeText(r.error).slice(0,60))}${safeText(r.error).length>60?'…':''}</span>` : '—';
+    return `<tr><td class="mono">${safeText(r.transactionId)}</td><td>${safeText(r.requester)}</td><td>${safeText(r.host)}</td><td>${safeText(r.cadPrimary)}</td><td>${safeText(r.parts)}</td><td>${statusBadge(r.status)}</td><td>${err}</td><td><span class="link" data-json="request" data-scope="searchTxn" data-id="${safeText(r.transactionId)}">View</span></td><td>${safeText(r.reqTs)}</td><td>${safeText(r.resTs)}</td><td class="mono">${safeText(r.logFile)}</td><td>${safeText(r.totalTime)}</td></tr>`;
+  }).join('') || `<tr><td colspan="12" style="padding:16px;color:var(--muted)">No search logs match your filters.</td></tr>`;
+  $('#searchTxnPage').textContent = String(searchTxnState.page);
+  $('#searchTxnPages').textContent = String(pages);
+  $('#searchTxnPrev').disabled = searchTxnState.page <= 1;
+  $('#searchTxnNext').disabled = searchTxnState.page >= pages;
+  $('#searchTxnMeta').textContent = total===0 ? 'Showing 0–0 of 0' : `Showing ${startIdx+1}–${endIdx} of ${total}`;
+  if($('#searchLogTbody')) renderSearchLogs();  
+}
+$('#searchTxnSearch').addEventListener('input', e => { searchTxnState.search=e.target.value; searchTxnState.page=1; renderSearchTable(); });
+$('#searchTxnReset').addEventListener('click', ()=>{
+  $('#searchTxnSearch').value='';
+  searchTxnState={search:'',page:1,pageSize:10};
+  setDefaultDateRange('#searchServerFrom', '#searchServerTo');
+  searchLogsFromServer();
+});
+$('#searchTxnPrev').addEventListener('click', ()=>{ searchTxnState.page=Math.max(1, searchTxnState.page-1); renderSearchTable(); });
+$('#searchTxnNext').addEventListener('click', ()=>{ searchTxnState.page=searchTxnState.page+1; renderSearchTable(); });
+$('#searchServerSearchBtn').addEventListener('click', searchLogsFromServer);  
+let searchLogState = {search:'',status:''};  
+function renderSearchLogs(){  
+  if(!$('#searchLogTbody')) return;  
+  const txnIds = new Set(getFilteredSearchClientRows().map(r => r.transactionId));  
+  let rows = searchComponentLogs.filter(r => txnIds.has(r.transactionId));  
+  if(searchLogState.search){  
+    const q = searchLogState.search.toLowerCase();  
+    rows = rows.filter(r => [r.transactionId,r.component,r.message,r.status,r.ts].filter(Boolean).some(v => String(v).toLowerCase().includes(q)));  
+  }  
+  if(searchLogState.status){ rows = rows.filter(r => (r.status||'').toUpperCase() === searchLogState.status); }  
+  rows.sort((a,b)=> safeText(a.transactionId).localeCompare(safeText(b.transactionId)) || safeText(a.ts).localeCompare(safeText(b.ts)));  
+  renderSimpleTable({tbodyId:'#searchLogTbody', rows, emptyCols:5, rowBuilder:r => `<tr><td class="mono">${safeText(r.transactionId)}</td><td>${safeText(r.component)}</td><td>${statusBadge(r.status)}</td><td>${safeText(r.message)}</td><td>${safeText(r.ts)}</td></tr>`});  
+}  
+$('#searchLogSearch').addEventListener('input', e => { searchLogState.search=e.target.value; renderSearchLogs(); });  
+$('#searchLogStatus').addEventListener('change', e => { searchLogState.status=e.target.value; renderSearchLogs(); });  
+$('#searchLogReset').addEventListener('click', ()=>{ searchLogState={search:'',status:''}; $('#searchLogSearch').value=''; $('#searchLogStatus').value=''; renderSearchLogs(); });  
+
+
+
+function createMasterLogRenderer(config){
+  const {data, tbodyId, fromId, toId, searchId, resetId, searchButtonId, textFields, dateField, rowBuilder, emptyCols} = config;
+  const render = () => {
+    const q = $(searchId).value.trim().toLowerCase();
+    const from = $(fromId).value; const to = $(toId).value;
+    let rows = [...data];
+    if(from){ rows = rows.filter(r => toDateOnly(r[dateField]) >= from); }
+    if(to){ rows = rows.filter(r => toDateOnly(r[dateField]) <= to); }
+    if(q){ rows = rows.filter(r => textFields.some(f => String(r[f] ?? '').toLowerCase().includes(q))); }
+    rows.sort((a,b)=> safeText(b[dateField]).localeCompare(safeText(a[dateField])));
+    renderSimpleTable({tbodyId, rows, rowBuilder, emptyCols});
+  };
+  $(searchId).addEventListener('input', render);
+  $(searchButtonId).addEventListener('click', render);
+  $(resetId).addEventListener('click', ()=>{ setDefaultDateRange(fromId, toId); $(searchId).value=''; render(); });
+  setDefaultDateRange(fromId, toId); render();
+}
+createMasterLogRenderer({data:higherDashLogs, tbodyId:'#hdTbody', fromId:'#hdFrom', toId:'#hdTo', searchId:'#hdSearch', resetId:'#hdReset', searchButtonId:'#hdSearchBtn', textFields:['transactionId','requester','cadPrimary','partNumber','partRev','error','status'], dateField:'reqTs', emptyCols:12, rowBuilder:r => `<tr><td class="mono">${safeText(r.transactionId)}</td><td>${safeText(r.requester)}</td><td>${safeText(r.cadPrimary)}</td><td class="mono">${safeText(r.partNumber)}</td><td>${safeText(r.partRev)}</td><td>${statusBadge(r.status)}</td><td>${safeText(r.error)}</td><td><span class="link" data-json="request" data-scope="higherDash" data-id="${safeText(r.transactionId)}">View</span></td><td><span class="link" data-json="response" data-scope="higherDash" data-id="${safeText(r.transactionId)}">View</span></td><td>${safeText(r.reqTs)}</td><td>${safeText(r.resTs)}</td><td>${safeText(r.totalTime)}</td></tr>`});
+createMasterLogRenderer({data:getCoLogs, tbodyId:'#coTbody', fromId:'#coFrom', toId:'#coTo', searchId:'#coSearch', resetId:'#coReset', searchButtonId:'#coSearchBtn', textFields:['transactionId','requester','cadPrimary','error','status'], dateField:'reqTs', emptyCols:10, rowBuilder:r => `<tr><td class="mono">${safeText(r.transactionId)}</td><td>${safeText(r.requester)}</td><td>${safeText(r.cadPrimary)}</td><td>${statusBadge(r.status)}</td><td>${safeText(r.error)}</td><td><span class="link" data-json="request" data-scope="getCo" data-id="${safeText(r.transactionId)}">View</span></td><td><span class="link" data-json="response" data-scope="getCo" data-id="${safeText(r.transactionId)}">View</span></td><td>${safeText(r.reqTs)}</td><td>${safeText(r.resTs)}</td><td>${safeText(r.totalTime)}</td></tr>`});
+createMasterLogRenderer({data:enoviaProjectsLogs, tbodyId:'#epTbody', fromId:'#epFrom', toId:'#epTo', searchId:'#epSearch', resetId:'#epReset', searchButtonId:'#epSearchBtn', textFields:['transactionId','requester','cadPrimary','error','status'], dateField:'reqTs', emptyCols:10, rowBuilder:r => `<tr><td class="mono">${safeText(r.transactionId)}</td><td>${safeText(r.requester)}</td><td>${safeText(r.cadPrimary)}</td><td>${safeText(r.projectCount)}</td><td>${statusBadge(r.status)}</td><td>${safeText(r.error)}</td><td>${safeText(r.reqTs)}</td><td>${safeText(r.resTs)}</td><td class="mono">${safeText(r.logFile)}</td><td>${safeText(r.totalTime)}</td></tr>`});
+createMasterLogRenderer({data:enoviaManufacturersLogs, tbodyId:'#emTbody', fromId:'#emFrom', toId:'#emTo', searchId:'#emSearch', resetId:'#emReset', searchButtonId:'#emSearchBtn', textFields:['transactionId','requester','cadPrimary','lastTransactionDate','error','status'], dateField:'reqTs', emptyCols:11, rowBuilder:r => `<tr><td class="mono">${safeText(r.transactionId)}</td><td>${safeText(r.requester)}</td><td>${safeText(r.cadPrimary)}</td><td>${safeText(r.lastTransactionDate)}</td><td>${safeText(r.projectCount)}</td><td>${statusBadge(r.status)}</td><td>${safeText(r.error)}</td><td>${safeText(r.reqTs)}</td><td>${safeText(r.resTs)}</td><td class="mono">${safeText(r.logFile)}</td><td>${safeText(r.totalTime)}</td></tr>`});
+createMasterLogRenderer({data:partTypeLogs, tbodyId:'#ptlTbody', fromId:'#ptlFrom', toId:'#ptlTo', searchId:'#ptlSearch', resetId:'#ptlReset', searchButtonId:'#ptlSearchBtn', textFields:['transactionId','requester','cadPrimary','error','status'], dateField:'reqTs', emptyCols:9, rowBuilder:r => `<tr><td class="mono">${safeText(r.transactionId)}</td><td>${safeText(r.requester)}</td><td>${safeText(r.cadPrimary)}</td><td>${statusBadge(r.status)}</td><td>${safeText(r.error)}</td><td>${safeText(r.reqTs)}</td><td>${safeText(r.resTs)}</td><td class="mono">${safeText(r.logFile)}</td><td>${safeText(r.totalTime)}</td></tr>`});
+createMasterLogRenderer({data:edocProjectsLogs, tbodyId:'#edTbody', fromId:'#edFrom', toId:'#edTo', searchId:'#edSearch', resetId:'#edReset', searchButtonId:'#edSearchBtn', textFields:['transactionId','requester','cadPrimary','error','status'], dateField:'reqTs', emptyCols:9, rowBuilder:r => `<tr><td class="mono">${safeText(r.transactionId)}</td><td>${safeText(r.requester)}</td><td>${safeText(r.cadPrimary)}</td><td>${statusBadge(r.status)}</td><td>${safeText(r.error)}</td><td>${safeText(r.reqTs)}</td><td>${safeText(r.resTs)}</td><td class="mono">${safeText(r.logFile)}</td><td>${safeText(r.totalTime)}</td></tr>`});
+
+function bindTableFilter({inputId, resetId, data, tbodyId, rowBuilder, fields, emptyCols}){
+  const render = () => {
+    const q = $(inputId).value.trim().toLowerCase();
+    const rows = !q ? data : data.filter(r => fields.some(f => String(r[f] ?? '').toLowerCase().includes(q)));
+    renderSimpleTable({tbodyId, rows, rowBuilder, emptyCols});
+  };
+  $(inputId).addEventListener('input', render);
+  $(resetId).addEventListener('click', ()=>{ $(inputId).value=''; render(); });
+  render();
+}
+bindTableFilter({inputId:'#manageEdocSearch', resetId:'#manageEdocReset', data:manageEdocProjects, tbodyId:'#manageEdocTbody', emptyCols:8, fields:['edocprojid','edocprojname','regionid','regionname','divid','divname','plmproject','state','updatedate','updateby'], rowBuilder:r => `<tr><td class="mono">${safeText(r.edocprojid)}</td><td>${safeText(r.edocprojname)}</td><td>${safeText(r.regionid)}</td><td>${safeText(r.regionname)}</td><td>${safeText(r.divid)}</td><td>${safeText(r.divname)}</td><td>${safeText(r.plmproject)}</td><td>${safeText(r.state)}</td><td>${safeText(r.updatedate)}</td><td>${safeText(r.updateby)}</td></tr>`});
+function getTodaysDateMmDdYyyy(){
+  const d = new Date();
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  const dd = String(d.getDate()).padStart(2, '0');
+  const yyyy = d.getFullYear();
+  return `${mm}/${dd}/${yyyy}`;
+}
+function normalizeUserId(value){
+  return String(value || '').trim().toLowerCase();
+}
+function buildUserEmail(userId){
+  return `${normalizeUserId(userId)}@kla.com`;
+}
+function renderUsersTable(){
+  const q = $('#userSearch').value.trim().toLowerCase();
+  const rows = !q ? usersData : usersData.filter(r => [r.userId,r.firstName,r.lastName,r.email,r.role,r.defaultPassword,r.creationDate,r.updatedate,r.updateby].filter(Boolean).some(v => String(v).toLowerCase().includes(q)));
+  renderSimpleTable({tbodyId:'#userTbody', rows, emptyCols:8, rowBuilder:r => `<tr><td><input type="checkbox" class="userCheckbox" data-user-id="${escapeHtml(r.userId)}" /></td><td class="mono">${escapeHtml(safeText(r.userId))}</td><td>${escapeHtml(safeText(r.firstName))}</td><td>${escapeHtml(safeText(r.lastName))}</td><td>${escapeHtml(safeText(r.email))}</td><td>${escapeHtml(safeText(r.role))}</td><td class="mono">${escapeHtml(safeText(r.defaultPassword))}</td><td>${escapeHtml(safeText(r.creationDate))}</td><td>${escapeHtml(safeText(r.updatedate))}</td><td>${escapeHtml(safeText(r.updateby))}</td></tr>`});
+  if($('#selectAllUsers')) $('#selectAllUsers').checked = false;
+}
+function addUser(){
+  const userId = normalizeUserId(prompt('Enter User KLA NT ID (Example: mupatil)'));
+  if(!userId){ return; }
+  if(usersData.some(u => normalizeUserId(u.userId) === userId)){
+    alert('User ID already exists.');
+    return;
+  }
+  const firstName = String(prompt('Enter First Name') || '').trim();
+  if(!firstName){ return; }
+  const lastName = String(prompt('Enter Last Name') || '').trim();
+  if(!lastName){ return; }
+  const emailInput = String(prompt('Enter Email ID', buildUserEmail(userId)) || '').trim();
+  const email = emailInput || buildUserEmail(userId);
+  usersData.push({
+    userId,
+    firstName,
+    lastName,
+    email,
+    role:'Admin',
+    defaultPassword:'AdminKLA123',
+    creationDate:getTodaysDateMmDdYyyy()
+  });
+  $('#userSearch').value = '';
+  renderUsersTable();
+}
+function deleteSelectedUsers(){
+  const selectedIds = Array.from(document.querySelectorAll('.userCheckbox:checked')).map(cb => normalizeUserId(cb.dataset.userId));
+  if(selectedIds.length === 0){
+    alert('Please select at least one user to delete.');
+    return;
+  }
+  if(!confirm(`Are you sure you want to delete ${selectedIds.length} selected user(s)?`)){
+    return;
+  }
+  usersData = usersData.filter(user => !selectedIds.includes(normalizeUserId(user.userId)));
+  renderUsersTable();
+}
+$('#userSearch').addEventListener('input', renderUsersTable);
+$('#userReset').addEventListener('click', () => { $('#userSearch').value=''; renderUsersTable(); });
+$('#addUserBtn').addEventListener('click', addUser);
+$('#deleteUserBtn').addEventListener('click', deleteSelectedUsers);
+$('#selectAllUsers').addEventListener('change', function(){ document.querySelectorAll('.userCheckbox').forEach(cb => cb.checked = this.checked); });
+renderUsersTable();
+
+let ptIdCounter = 1000;
+function renderPartTypeTree(data, level=0, parentId=null, q=''){
+  let html = '';
+  data.forEach(node => {
+    const selfMatches = !q || [node.parttypename,node.sapmaterialtype,node.isCAD].some(v => String(v || '').toLowerCase().includes(q));
+    const childHtml = node.subparttypes && node.subparttypes.length ? renderPartTypeTree(node.subparttypes, level+1, 'pt_' + ptIdCounter, q) : '';
+    const shouldShow = selfMatches || childHtml !== '';
+    const rowId = 'pt_' + (ptIdCounter++);
+    if(!shouldShow){ return; }
+    const hasChildren = (node.subparttypes && node.subparttypes.length > 0);
+    html += `<tr data-id="${rowId}" data-parent="${parentId || ''}" style="${parentId ? 'display:none' : ''}"><td><input type="checkbox" class="ptCheckbox"/></td><td class="mono">${ptIdCounter}</td><td style="padding-left:${level*20}px">${hasChildren ? `<span class="toggle" data-id="${rowId}" style="cursor:pointer;margin-right:5px">▶</span>` : `<span style="display:inline-block;width:12px"></span>`}${safeText(node.parttypename)}</td><td>${safeText(node.sapmaterialtype)}</td><td>${node.isCAD === 'TRUE' ? '<span class="badge status-success"><span class="pill"></span>CAD</span>' : '<span class="badge status-failed"><span class="pill"></span>Non-CAD</span>'}</td><td>Active</td><td>2026-07-03 08:20:10</td><td>mupatil</td></tr>`;
+    html += childHtml.replaceAll(`data-parent="pt_${ptIdCounter-1}"`, `data-parent="${rowId}"`);
+  });
+  return html;
+}
+function redrawPartTypes(){ ptIdCounter = 1000; $('#partTypeTbody').innerHTML = renderPartTypeTree(partTypes,0,null,$('#partTypeSearch').value.trim().toLowerCase()) || `<tr><td colspan="6" style="padding:16px;color:var(--muted)">No part types match your search.</td></tr>`; }
+redrawPartTypes();
+document.addEventListener('click', function(e){ if(e.target.classList.contains('toggle')){ const id=e.target.dataset.id; const isExpanded=e.target.textContent==='▼'; e.target.textContent=isExpanded?'▶':'▼'; toggleChildren(id,!isExpanded); } });
+function toggleChildren(parentId, show){ document.querySelectorAll(`tr[data-parent="${parentId}"]`).forEach(row => { row.style.display = show ? '' : 'none'; if(!show){ const t=row.querySelector('.toggle'); if(t) t.textContent='▶'; toggleChildren(row.dataset.id,false); } }); }
+$('#partTypeSearch').addEventListener('input', redrawPartTypes); $('#resetPartTypeBtn').addEventListener('click', ()=>{ $('#partTypeSearch').value=''; redrawPartTypes(); });
+$('#editPartTypeBtn').addEventListener('click', ()=> $('#editModal').classList.add('show'));
+$('#closeEditModal').addEventListener('click', ()=> $('#editModal').classList.remove('show'));
+$('#selectAllPartTypes').addEventListener('change', function(){ document.querySelectorAll('.ptCheckbox').forEach(cb => cb.checked = this.checked); });
+$('#submitEdit').addEventListener('click', ()=>{ const selectedType = $('#cadTypeSelect').value; document.querySelectorAll('.ptCheckbox:checked').forEach(row => { const td=row.closest('tr').children[4]; td.innerHTML = selectedType === 'CAD' ? '<span class="badge status-success"><span class="pill"></span>CAD</span>' : '<span class="badge status-failed"><span class="pill"></span>Non-CAD</span>'; }); $('#editModal').classList.remove('show'); $('#selectAllPartTypes').checked=false; });
+
+function getDataByScope(scope, id){
+  const maps = {txn:currentTransactions, txnServer:txnServerRows, dash:currentDashrollTransactions, dashServer:dashServerRows, upload:currentUploadTransactions, uploadServer:uploadServerRows, backflow:currentBackflowTransactions, backflowServer:backflowServerRows, searchTxn:currentSearchTransactions, searchServer:searchServerRows, higherDash:higherDashLogs, getCo:getCoLogs};
+  return (maps[scope] || []).find(r => r.transactionId === id);
+}
+document.addEventListener('click', function(e){ if(e.target.classList.contains('link') && e.target.dataset.json){ const row = getDataByScope(e.target.dataset.scope, e.target.dataset.id); if(!row) return; if(e.target.dataset.json === 'backflow'){ openJsonModal(`${row.transactionId} • JSON Data`, row.jsonData); return; } const isReq = e.target.dataset.json === 'request'; openJsonModal(`${row.transactionId} • ${isReq ? 'Request JSON' : 'Response JSON'}`, isReq ? row.requestJson : row.responseJson); } });
+
+originalTransactions = [...transactions]; setDefaultDateRange('#txnServerFrom', '#txnServerTo'); searchPartTransactionsFromServer(); setDefaultDateRange('#dashServerFrom', '#dashServerTo'); searchDashrollTransactionsFromServer(); setDefaultDateRange('#uploadServerFrom', '#uploadServerTo'); searchUploadTransactionsFromServer(); setDefaultDateRange('#backflowServerFrom', '#backflowServerTo'); searchBackflowTransactionsFromServer(); setDefaultDateRange('#searchServerFrom', '#searchServerTo'); searchLogsFromServer(); updateCreatePartKpis(); renderTxnTable(); renderDetails(); renderLogs(); updateDashKpis(); renderDashTable(); renderDashLogs(); renderUploadTable(); renderUploadLogs(); renderBackflowTable(); renderSearchTable(); renderSearchLogs(); routeFromHash();
+</script>
+</body>
+</html>
