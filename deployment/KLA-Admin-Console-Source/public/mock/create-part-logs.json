@@ -1,0 +1,27 @@
+{
+    "content": [
+        {
+            "transactionId": "0e458b46-a402-4cd9-bd05-4e3f46ea4979",
+            "requester": "akorahja",
+            "hostName": "PDM HOST Name",
+            "cadPrimary": "SOLIDWORK_ORBK_ISL",
+            "reqTs": "2026-07-20T00:00:05Z",
+            "resTs": "2026-07-20T00:00:08Z",
+            "status": "SUCCESS",
+            "totalParts": 2,
+            "executionTime": 3.0,
+            "message": "Enovia specific error msg",
+            "edoc": "Edoc Project"
+        }
+    ],
+    "pageNumber": 0,
+    "pageSize": 20,
+    "totalElements": 1,
+    "totalPages": 1,
+    "last": true,
+    "first": true,
+	"total":"10",
+	"success":"5",
+	"partial":"3",
+	"fail":"2"
+}

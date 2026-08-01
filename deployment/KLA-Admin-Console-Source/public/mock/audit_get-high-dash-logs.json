@@ -1,0 +1,22 @@
+{
+    "content": [
+        {
+            "transactionId": "d5d3b55d-cdf6-4a74-bee0-ee9c06a853a5",
+            "requester": "PDM Context User",
+            "cadPrimary": "SW_KLA",
+            "partNumber": "5400011-000",
+            "partRev": "AA",
+            "status": "SUCCESS",
+            "message": "Enovia specific eroor msg",
+            "reqTs": "2026-07-20T00:00:02Z",
+            "resTs": "2026-07-20T00:00:06Z",
+            "executionTime": 4.0
+        }
+    ],
+    "pageNumber": 0,
+    "pageSize": 20,
+    "totalElements": 1,
+    "totalPages": 1,
+    "last": true,
+    "first": true
+}

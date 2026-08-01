@@ -1,0 +1,62 @@
+{
+    "data": {
+        "parts": [
+            {
+                "transactionId": "37566b73-1ddd-434d-98f2-96e2b1c5c574",
+                "instanceId": "37566b73-1ddd-434d-98f2-96e2b1c5c574_1",
+                "partNumber": "54000112-000",
+                "partRev": "BA",
+                "cadUniqueIdentifier": "",
+                "status": "Fail",
+                "message": "Aborted due to failure in this transaction",
+                "pdmStatus": "SUCCESS",
+                "fileNames": "54000112-000_BA.stp,54000112-000_BA.pdf"
+            }
+        ],
+        "componentLogs": [
+            {
+                "transactionId": "37566b73-1ddd-434d-98f2-96e2b1c5c574",
+                "component": "PDMLINK_KLA_ISL",
+                "status": "SUCCESS",
+                "msg": "Request Sent to PDM Middleware",
+                "usecase": "UploadToEnovia",
+                "timeStamp": "2026-07-20T10:10:12Z"
+            },
+            {
+                "transactionId": "37566b73-1ddd-434d-98f2-96e2b1c5c574",
+                "component": "ENOVIA",
+                "status": "SUCCESS",
+                "msg": "something",
+                "usecase": "UploadToEnovia",
+                "timeStamp": "2026-07-20T10:10:34Z"
+            },
+			{
+                "transactionId": "37566b73-1ddd-434d-98f2-96e2b1c5c574",
+                "component": "ENOVIA",
+                "status": "SUCCESS",
+                "msg": "something",
+                "usecase": "UploadToEnovia",
+                "timeStamp": "2026-07-20T10:10:34Z"
+            },
+			{
+                "transactionId": "37566b73-1ddd-434d-98f2-96e2b1c5c574",
+                "component": "PDMLINK_KLA_ISL",
+                "status": "SUCCESS",
+                "msg": "Response Recieved at PDM",
+                "usecase": "UploadToEnovia",
+                "timeStamp": "2026-07-20T10:10:12Z"
+            },
+            {
+                "transactionId": "37566b73-1ddd-434d-98f2-96e2b1c5c574",
+                "component": "PDM",
+                "status": "SUCCESS",
+                "msg": "Ack to Admin Dashboard",
+                "usecase": "UploadToEnovia",
+                "timeStamp": "2026-07-22T09:46:07.378290Z"
+            }
+        ]
+    },
+    "statusCode": 200,
+    "status": "Success",
+    "message": ""
+}

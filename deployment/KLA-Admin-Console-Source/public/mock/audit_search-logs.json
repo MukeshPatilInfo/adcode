@@ -1,0 +1,22 @@
+{
+    "content": [
+        {
+            "transactionId": "0e947b46-a402-4cd9-bd05-5e3f46ea4947",
+            "requester": "akorahja",
+            "hostName": "PDM HOST Name",
+            "cadPrimary": "SW_KLA",
+            "reqTs": "2026-07-20T14:18:37Z",
+            "status": "FAIL",
+            "message": "Success, Parts found in Enovia",
+            "searchcount": 2,
+            "resTs": "2026-07-20T14:18:40Z",
+            "executionTime": 3.0
+        }
+    ],
+    "pageNumber": 0,
+    "pageSize": 20,
+    "totalElements": 1,
+    "totalPages": 1,
+    "last": true,
+    "first": true
+}

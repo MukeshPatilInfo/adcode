@@ -1,0 +1,21 @@
+{
+    "content": [
+        {
+            "transactionId": "2e947b46-a402-4cd9-bd05-4e3f46ea4977",
+            "requester": "CAD User",
+            "cadPrimary": "SW_KLA",
+            "fetchedEdocProject": 2,
+            "reqTs": "2026-06-18T12:05:31.123Z",
+            "resTs": "2026-06-18T12:05:35Z",
+            "status": "SUCCESS",
+            "message": "",
+            "executionTime": 3.877
+        }
+    ],
+    "pageNumber": 0,
+    "pageSize": 20,
+    "totalElements": 1,
+    "totalPages": 1,
+    "last": true,
+    "first": true
+}

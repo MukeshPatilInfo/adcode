@@ -1,0 +1,28 @@
+{
+    "content": [
+        {
+            "transactionId": "TXN-20260721-002",
+            "enoviaObjectTnr": "DOC|98765|B",
+            "cadPrimary": "NX_KLA",
+            "jsonData": "{\"status\": \"Released\", \"revision\": \"B\", \"documentId\": \"98765\"}",
+            "enoviaUpdateTimestamp": "2026-07-21T07:10:45.111222Z",
+            "pdmUpdateStatus": "FAIL",
+            "pdmUpdateTimestamp": "2026-07-21T07:15:30.333444Z"
+        },
+        {
+            "transactionId": "TXN-20260721-001",
+            "enoviaObjectTnr": "PART|12345|A",
+            "cadPrimary": "SW_KLA",
+            "jsonData": "{\"revision\": \"A\", \"partNumber\": \"12345\", \"description\": \"Sample Part 1\"}",
+            "enoviaUpdateTimestamp": "2026-07-21T05:55:11.779249Z",
+            "pdmUpdateStatus": "SUCCESS",
+            "pdmUpdateTimestamp": "2026-07-21T06:00:15.123456Z"
+        }
+    ],
+    "pageNumber": 0,
+    "pageSize": 20,
+    "totalElements": 2,
+    "totalPages": 1,
+    "last": true,
+    "first": true
+}

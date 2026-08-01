@@ -1,0 +1,29 @@
+Windows deployment package created:  deployment\KLA-Admin-Console-Windows-Nginx.zip 
+It contains only the production static application, Nginx site configuration, and deployment instructions.
+
+1. Install on the client server
+• Nginx for Windows in  C:\nginx 
+• TLS certificate and private key for  pdmadminconsoled.kla.com 
+• Backend Admin Console API, reachable from Nginx
+• Optional: NSSM to run Nginx as an auto-start Windows service
+Node.js is not required on the server.
+2. Deploy
+• Extract the package.
+• Copy  html  to  C:\nginx\html\pdm-admin-console .
+• Copy  conf\pdmadminconsole.conf  to  C:\nginx\conf\ .
+• Add  include conf/pdmadminconsole.conf;  inside the  http { }  block of  C:\nginx\conf\nginx.conf .
+• Update certificate paths and backend address in  pdmadminconsole.conf .
+• Run:
+C:\nginx\nginx.exe -t
+C:\nginx\nginx.exe
+3. Real endpoint settings
+The production package is already built with:
+VITE_USE_MOCK_API=false
+VITE_API_HOST=/api
+``` Nginx proxies `/api/auth/login` to the backend as `/auth/login`, and does the same for audit, users, part types, EDOC, and upload endpoints.
+4. Nginx configuration
+The supplied config is ready for:
+https://pdmadminconsoled.kla.com/
+``` It redirects HTTP to HTTPS and proxies API calls to `http://127.0.0.1:8080`. Change that `proxy_pass` address if the backend is hosted on another server or port. Ensure DNS and the Windows firewall permit HTTPS on port 443.
+
+Detailed instructions are included in  deployment\windows-nginx\README.md 

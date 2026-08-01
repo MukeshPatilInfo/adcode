@@ -1,0 +1,39 @@
+{
+    "status": 200,
+    "message": "Success",
+	"totalPartTypes":"",
+	"totalCAD":"",
+	"totalNonCAD":"",
+    "partTypes": [
+        {
+            "objectId": "51223.48656.57731.29688",
+            "partTypeName": "Packaged FRU Assembly",
+            "sapMaterialType": "HALB",
+            "isCad": false,
+            "partTypeState": "Active",
+            "updatedAt": "2026-07-22T12:48:08.240417Z",
+            "updatedBy": null,
+            "subPartTypes": []
+        },
+        {
+            "objectId": "51223.48656.18553.45624",
+            "partTypeName": "Document Part - ZDOC",
+            "sapMaterialType": null,
+            "isCad": false,
+            "partTypeState": "Active",
+            "updatedAt": "2026-07-22T12:48:08.240417Z",
+            "updatedBy": null,
+            "subPartTypes": [
+                {
+                    "objectId": "51223.48656.4945.13215",
+                    "partTypeName": "Design and Fabrication Document",
+                    "sapMaterialType": "ZDOC",
+                    "isCad": false,
+                    "partTypeState": "Active",
+                    "updatedAt": "2026-07-22T12:48:08.240417Z",
+                    "updatedBy": null
+                }
+            ]
+        }
+    ]
+}
