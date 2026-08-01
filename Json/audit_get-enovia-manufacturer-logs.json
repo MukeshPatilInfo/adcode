@@ -1,0 +1,22 @@
+{
+    "content": [
+        {
+            "transactionId": "4e947b46-a402-4cd9-bd05-4e3f46ea4977",
+            "requester": "CAD User",
+            "cadPrimary": "kla",
+            "reqTs": "2026-07-20T19:05:33Z",
+            "resTs": "2026-07-20T19:05:36Z",
+            "status": "SUCCESS",
+            "message": "Success",
+            "successCount": 2,
+            "lastTransactionDate": "2026-01-17T19:05:21Z",
+            "executionTime": 3.0
+        }
+    ],
+    "pageNumber": 0,
+    "pageSize": 20,
+    "totalElements": 1,
+    "totalPages": 1,
+    "last": true,
+    "first": true
+}

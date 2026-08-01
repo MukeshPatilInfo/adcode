@@ -1,0 +1,63 @@
+"{
+    "data": {
+        "parts": [
+            {
+                "transactionId": "0e458b46-a402-4cd9-bd05-4e3f46ea4979",
+                "instanceId": "0e458b46-a402-4cd9-bd05-4e3f46ea4979_1",
+                "fileName": "1Bracket_Assy.SLDPRT_2",
+                "partNumber": "PN-1005",
+                "project": "WIN",
+                "mfr": "3M",
+                "status": "SUCCESS",
+                "msg": "Nothing"
+            },
+            {
+                "transactionId": "0e458b46-a402-4cd9-bd05-4e3f46ea4979",
+                "instanceId": "0e458b46-a402-4cd9-bd05-4e3f46ea4979_2",
+                "fileName": "1Cover_Plate.SLDPRT_2",
+                "partNumber": "PN-1006",
+                "project": "WIN",
+                "mfr": "3M",
+                "status": "SUCCESS",
+                "msg": "Nothing"
+            }
+        ],
+        "componentLogs": [
+            {
+                "transactionId": "0e458b46-a402-4cd9-bd05-4e3f46ea4979",
+                "component": "SOLIDWORK_ORBK_ISL",
+                "status": "SUCCESS",
+                "msg": "Request Sent to SAP_PI",
+                "usecase": "PartCreate",
+                "timeStamp": "2026-07-20T00:00:05Z"
+            },
+            {
+                "transactionId": "0e458b46-a402-4cd9-bd05-4e3f46ea4979",
+                "component": "ENOVIA",
+                "status": "SUCCESS",
+                "msg": "Request Recieved at ENOVIA",
+                "usecase": "PartCreate",
+                "timeStamp": "2026-07-20T00:00:08Z"
+            },
+			{
+                "transactionId": "0e458b46-a402-4cd9-bd05-4e3f46ea4979",
+                "component": "ENOVIA",
+                "status": "SUCCESS",
+                "msg": "Request Sent to SAP_PI",
+                "usecase": "PartCreate",
+                "timeStamp": "2026-07-20T00:00:08Z"
+            },
+			{
+                "transactionId": "0e458b46-a402-4cd9-bd05-4e3f46ea4979",
+                "component": "SOLIDWORK_ORBK_ISL",
+                "status": "SUCCESS",
+                "msg": "Response Recieved",
+                "usecase": "PartCreate",
+                "timeStamp": "2026-07-20T00:00:05Z"
+            }
+        ]
+    },
+    "statusCode": 200,
+    "status": "Success",
+    "message": ""
+}"

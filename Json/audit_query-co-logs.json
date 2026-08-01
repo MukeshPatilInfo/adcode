@@ -1,0 +1,21 @@
+{
+    "content": [
+        {
+            "transactionId": "1046e07f-21f9-4741-a564-766f505c8727",
+            "requester": "PDM Context User",
+            "cadPrimary": "",
+            "fetchedCo": 3,
+            "reqTs": "2026-07-20T00:00:05Z",
+            "resTs": "2026-07-20T00:00:07Z",
+            "status": "",
+            "message": "",
+            "executionTime": 2.0
+        }
+    ],
+    "pageNumber": 0,
+    "pageSize": 20,
+    "totalElements": 1,
+    "totalPages": 1,
+    "last": true,
+    "first": true
+}

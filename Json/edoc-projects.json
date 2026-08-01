@@ -1,0 +1,19 @@
+{
+    "status": 200,
+    "message": "Success",
+	"projectcount":"",
+    "edocProjects": [
+        {
+            "regionId": 4,
+            "regionName": "US (Ann Arbor)",
+            "divName": "CEG-AA",
+            "divId": 31,
+            "edocProjectName": "CEG-AA: Fixtures",
+            "edocProjectId": 573,
+            "plmProject": "RAP AA Dev Eng",
+            "pnlist": true,
+            "updatedAt": "2026-07-22T12:33:12.029786Z",
+            "updatedBy": "admin1"
+        }
+    ]
+}

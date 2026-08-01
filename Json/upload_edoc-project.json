@@ -1,0 +1,35 @@
+// SUCCESS RESPONSE
+{
+    "status": "SUCCESS",
+    "validationErrors": null,
+    "duplicateErrors": null
+}
+
+
+
+// FAILED RESPONSE
+{
+    "status": "FAILED",
+    "validationErrors": [
+        {
+            "row": 7,
+            "column": "regionid",
+            "message": "Value is null or empty"
+        },
+        {
+            "row": 10,
+            "column": "divid",
+            "message": "Value is null or empty"
+        }
+    ],
+    "duplicateErrors": [
+        {
+            "edocprojid": 573,
+            "edocprojname": "CEG-AA: Fixtures",
+            "rows": [
+                2,
+                3
+            ]
+        }
+    ]
+}

@@ -1,0 +1,26 @@
+{
+    "content": [
+        {
+            "transactionId": "37566b73-1ddd-434d-98f2-96e2b1c5c574",
+            "requester": "PDM Initiator User Id",
+            "hostName": "PDM HOST Name",
+            "cadPrimary": "PDMLINK_KLA_ISL",
+            "coName": "co",
+            "reqTs": "2026-07-20T10:10:12Z",
+            "resTs": "2026-07-20T10:10:34Z",
+            "numberOfParts": 1,
+            "numberOfFiles": 2,
+            "executionTime": 22.0,
+            "status": "FAIL"
+        }
+    ],
+    "pageNumber": 0,
+    "pageSize": 20,
+    "totalElements": 1,
+    "totalPages": 1,
+    "last": true,
+    "first": true,
+"total":"10",
+"success":"8",
+"fail":"2"
+}
