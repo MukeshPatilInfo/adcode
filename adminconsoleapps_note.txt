@@ -1,0 +1,66 @@
+Now this application is deployed on Client Server on nginx. You can see how the folder structure at client environment "D:\AdminDash\adcode-1\nginx-folder-structure.txt"
+You can see below conf and cert files:
+"D:\AdminDash\adcode-1\pdmadminconsole.conf"
+"D:\AdminDash\adcode-1\pdmadminconsoled.kla.com.pfx"
+"D:\AdminDash\adcode-1\pdmadminconsoled.kla.com.crt"
+"D:\AdminDash\adcode-1\pdmadminconsoled.kla.com.key"
+"D:\AdminDash\adcode-1\pdmadminconsoled.kla.com.pfx"
+
+I want the application URL should be https://pdmadminconsoled.kla.com/adminconsole. Please let me know what chnages I need to make on client environment. Where I need make changes
+
+To host it at https://pdmadminconsoled.kla.com/adminconsole, make these changes on the client server.
+
+1. Build the app with the  /adminconsole/  base path on the build machine:
+Set-Location D:\AdminDash\adcode-1\deployment\KLA-Admin-Console-Source
+$env:VITE_USE_MOCK_API = "false"
+$env:VITE_API_HOST = "/api"
+npm run build -- --base=/adminconsole/
+2. Deploy the generated  dist  contents to this client-server folder:
+C:\nginx\html\adminconsole\
+Use  adminconsole  rather than the current  pdm-admin-console  folder so the URL maps directly to the files.
+3. Update  C:\nginx\conf\pdmadminconsole.conf . Use ports  80  and  443 —the current  9080  and  8444  configuration cannot serve the requested URL without port numbers:
+server {
+    listen 80;
+    server_name pdmadminconsoled.kla.com;
+    return 301 https://$host$request_uri;
+}
+
+server {
+    listen 443 ssl;
+    server_name pdmadminconsoled.kla.com;
+
+    ssl_certificate     C:/nginx/certs/pdmadminconsoled.kla.com.crt;
+    ssl_certificate_key C:/nginx/certs/pdmadminconsoled.kla.com.key;
+    ssl_protocols TLSv1.2 TLSv1.3;
+
+    client_max_body_size 15m;
+
+    location = /adminconsole {
+        return 301 /adminconsole/;
+    }
+
+    location ^~ /adminconsole/ {
+        root C:/nginx/html;
+        try_files $uri $uri/ /adminconsole/index.html;
+    }
+
+    location /api/ {
+        # Retain your working backend rewrite/proxy configuration here.
+        rewrite ^/api/(.*)$ /loggingservice/$1 break;
+        proxy_pass https://pdmadminconsoled.kla.com;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header Authorization $http_authorization;
+    }
+}
+4. Ensure  C:\nginx\conf\nginx.conf  includes the file within  http {} :
+include C:/nginx/conf/pdmadminconsole.conf;
+5. Copy the  .crt  and  .key  files into  C:\nginx\certs\ . Nginx uses these two files; the  .pfx  file is not referenced by this configuration.
+6. Validate and reload Nginx:
+C:\nginx\nginx.exe -t
+C:\nginx\nginx.exe -s reload
+
+The important application-side requirement is building with  --base=/adminconsole/ ; otherwise its JavaScript and CSS assets would still be requested from  /assets/  instead of  /adminconsole/assets/ .
