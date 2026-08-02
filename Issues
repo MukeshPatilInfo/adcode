@@ -1,0 +1,52 @@
+Issues:
+1) All tables should have scroll
+2) All tables (Only Transaction 1st table) should have refresh button. On refresh table should hit same endpoint with current filter craiteria. 
+3) Manage Master Data -> Part Types Table -> Below columns should be sortable
+   A) Part Type, SAP Material Type, Is CAD, State
+4) Manage Master Data -> EDOC Projects Table -> Below columns should be sortable
+	A) Project Number B) Project Name C) Region D) Region Name E) Div Num, F) Div Name G) PLM Project
+	
+	
+5) 	Manage Master Data -> User Table -> On create, update, Delete the page is not referesh. Please see below enpoint details and make sure if endpoint return response then table should be referesh
+	
+Use Case: CreateUser
+Method: POST
+Endpoint: http:.../users
+Request Parameters: NA
+Path Variables: NA
+Request Payload:
+{
+  "userId": "admin2",
+  "firstName": "Rahul",
+  "lastName": "Wagadre",
+  "email": "Rahul.wagadre@kla.com",
+  "role": "ADMIN"
+}
+Response:
+User created successfully
+
+
+Use Case: CreateUser
+Method: PUT
+Endpoint: http:.../users
+Request Parameters: userId(String)
+Path Variables: NA
+Request Payload:
+{
+  "firstName": "Rahul",
+  "lastName": "Wagadre",
+  "email": "rahul.wagadre@kla.com",
+  "isActive": true
+}
+Response:
+User updated successfully
+
+
+Use Case: CreateUser
+Method: DELETE
+Endpoint: http:.../users
+Request Parameters: userId(String)
+Path Variables: NA
+Request Payload:NA
+Response:
+User deleted successfully
