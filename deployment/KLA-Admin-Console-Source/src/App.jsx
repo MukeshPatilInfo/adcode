@@ -16,9 +16,34 @@ const pstDate = (value) =>
 //const toApiDate = (value) => value ? new Intl.DateTimeFormat("en-GB", { timeZone: "America/Los_Angeles" }).format(new Date(`${value}T12:00:00`)).replace(/\//g, "/") : "";
 
 const toApiDate = (value) => value || "";
+const displayStatus = (status) => {
+  const value = String(status || "").trim();
+  return /^fail(?:ed)?$/i.test(value) ? "FAILED" : value;
+};
 const statusClass = (status = "") =>
-  `status ${String(status).toLowerCase().replace("fail", "failed").replace("pending", "running")}`;
+  `status ${displayStatus(status).toLowerCase().replace("pending", "running")}`;
 const columns = (items) => items.map(([label, key]) => ({ label, key }));
+const nextSort = (sort, key) =>
+  sort.key === key && sort.direction === "asc"
+    ? { key, direction: "desc" }
+    : { key, direction: "asc" };
+const sortRows = (rows, sort) => {
+  if (!sort.key) return rows;
+
+  return [...rows].sort((left, right) => {
+    const leftValue = left[sort.key];
+    const rightValue = right[sort.key];
+    const leftEmpty = leftValue === null || leftValue === undefined || leftValue === "";
+    const rightEmpty = rightValue === null || rightValue === undefined || rightValue === "";
+    if (leftEmpty || rightEmpty) return leftEmpty === rightEmpty ? 0 : leftEmpty ? 1 : -1;
+
+    const comparison = String(leftValue).localeCompare(String(rightValue), undefined, {
+      numeric: true,
+      sensitivity: "base",
+    });
+    return sort.direction === "asc" ? comparison : -comparison;
+  });
+};
 
 const logPages = {
   "create-part": {
@@ -255,7 +280,24 @@ function Modal({ title, children, onClose }) {
   );
 }
 function Status({ value }) {
-  return <span className={statusClass(value)}>{value || "UNKNOWN"}</span>;
+  const label = displayStatus(value);
+  return <span className={statusClass(label)}>{label || "UNKNOWN"}</span>;
+}
+function SortableHeader({ column, sortable, sort, onSort }) {
+  if (!sortable) return <th>{column.label}</th>;
+
+  const isSorted = sort.key === column.key;
+  return (
+    <th aria-sort={isSorted ? `${sort.direction}ending` : "none"}>
+      <button
+        className="sort-button"
+        onClick={() => onSort(column.key)}
+        title={`Sort by ${column.label}`}
+      >
+        {column.label} {isSorted ? (sort.direction === "asc" ? "▲" : "▼") : "↕"}
+      </button>
+    </th>
+  );
 }
 function Table({
   title,
@@ -263,33 +305,46 @@ function Table({
   rows,
   onTransaction,
   onJson,
+  onRefresh,
+  sortableKeys = [],
   id,
 }) {
+  const [sort, setSort] = useState({ key: "", direction: "asc" });
+  const sortedRows = useMemo(() => sortRows(rows, sort), [rows, sort]);
   const fullScreen = () => document.getElementById(id)?.requestFullscreen?.();
   return (
     <section className="panel" id={id}>
       <div className="panel-title">
         <h2>{title}</h2>
-        <button
-          className="icon-button"
-          title="Expand table"
-          onClick={fullScreen}
-        >
-          ⛶
-        </button>
+        <div className="panel-actions">
+          {onRefresh && <button onClick={onRefresh}>Refresh</button>}
+          <button
+            className="icon-button"
+            title="Expand table"
+            onClick={fullScreen}
+          >
+            ⛶
+          </button>
+        </div>
       </div>
       <div className="table-wrap">
         <table>
           <thead>
             <tr>
               {tableColumns.map((column) => (
-                <th key={column.key}>{column.label}</th>
+                <SortableHeader
+                  key={column.key}
+                  column={column}
+                  sortable={sortableKeys.includes(column.key)}
+                  sort={sort}
+                  onSort={(key) => setSort((current) => nextSort(current, key))}
+                />
               ))}
             </tr>
           </thead>
           <tbody>
-            {rows.length ? (
-              rows.map((row, index) => (
+            {sortedRows.length ? (
+              sortedRows.map((row, index) => (
                 <tr
                   key={`${row.transactionId || row.objectId || row.userId || "row"}-${row.instanceId || row.component || index}-${index}`}
                 >
@@ -345,7 +400,7 @@ function renderCell(row, column, onTransaction, onJson) {
         View
       </button>
     );
-  if (/Ts$|Timestamp$|updatedAt|createdAt|lastTransactionDate/.test(column.key))
+  if (/(?:Ts|Timestamp|updatedAt|createdAt|lastTransactionDate)$/i.test(column.key))
     return pstDate(value);
   if (column.key === "executionTime")
     return value === undefined ? "-" : `${value}s`;
@@ -483,8 +538,8 @@ function LogPage({ page }) {
       (data.content || []).filter(
         (row) =>
           (!localStatus ||
-            row.status === localStatus ||
-            row.pdmUpdateStatus === localStatus) &&
+            displayStatus(row.status).toUpperCase() === localStatus ||
+            displayStatus(row.pdmUpdateStatus).toUpperCase() === localStatus) &&
           JSON.stringify(row).toLowerCase().includes(query.toLowerCase()),
       ),
     [data, query, localStatus],
@@ -548,6 +603,7 @@ function LogPage({ page }) {
           setLocalStatus("");
         }}
         includeStatus={page.title !== "Search"}
+        includePartialStatus={page.title === "Create Part"}
       />
       {error && <div className="alert error">{error}</div>}
       {loading ? (
@@ -560,6 +616,7 @@ function LogPage({ page }) {
           rows={rows}
           onTransaction={page.details ? selectTransaction : undefined}
           onJson={showJson}
+          onRefresh={load}
         />
       )}
       {selection && <Details page={page} selection={selection} />}
@@ -596,6 +653,7 @@ function Filters({
   setLocalStatus,
   onReset,
   includeStatus = true,
+  includePartialStatus = false,
 }) {
   return (
     <section className="panel filters">
@@ -633,8 +691,8 @@ function Filters({
               >
                 <option value="">All</option>
                 <option>SUCCESS</option>
-                <option>PARTIAL</option>
-                <option>FAIL</option>
+                {includePartialStatus && <option>PARTIAL</option>}
+                <option value="FAILED">FAILED</option>
                 <option>RUNNING</option>
               </select>
             </label>
@@ -676,8 +734,8 @@ function Filters({
             >
               <option value="">All</option>
               <option>SUCCESS</option>
-              <option>PARTIAL</option>
-              <option>FAIL</option>
+              {includePartialStatus && <option>PARTIAL</option>}
+              <option value="FAILED">FAILED</option>
               <option>RUNNING</option>
             </select>
           </label>
@@ -758,6 +816,7 @@ function ManagePartTypes() {
   const [expanded, setExpanded] = useState({});
   const [modal, setModal] = useState(false);
   const [notice, setNotice] = useState("");
+  const [sort, setSort] = useState({ key: "", direction: "asc" });
   const load = async () => setResponse(await api("/part-types"));
   useEffect(() => {
     load();
@@ -803,11 +862,30 @@ function ManagePartTypes() {
     ["Updated Date", "updatedAt"],
     ["Updated By", "updatedBy"],
   ]);
+  const sortedRows = useMemo(() => sortRows(rows, sort), [rows, sort]);
+  const sortableKeys = ["partTypeName", "sapMaterialType", "isCad", "partTypeState"];
+  const selectableIds = sortedRows
+    .filter((part) => Boolean(part.sapMaterialType))
+    .map((part) => part.objectId);
+  const allVisibleSelected =
+    selectableIds.length > 0 &&
+    selectableIds.every((objectId) => selected.includes(objectId));
+  const expandableIds = response.partTypes
+    .filter((part) => part.subPartTypes?.length)
+    .map((part) => part.objectId);
+  const toggleAllVisible = () =>
+    setSelected((items) =>
+      allVisibleSelected
+        ? items.filter((objectId) => !selectableIds.includes(objectId))
+        : [...new Set([...items, ...selectableIds])],
+    );
+  const expandAll = () =>
+    setExpanded(Object.fromEntries(expandableIds.map((objectId) => [objectId, true])));
   return (
     <>
       <PageHeading
         title="Manage Part Types"
-        subtitle={`CAD: ${response.totalCAD || 0} | Non-CAD: ${response.totalNonCAD || 0}`}
+        subtitle={`Total Part Types: ${response.totalPartTypes ?? response.partTypes.length} | CAD: ${response.totalCAD || 0} | Non-CAD: ${response.totalNonCAD || 0}`}
         actions={
           <button
             className="primary"
@@ -832,28 +910,56 @@ function ManagePartTypes() {
       <section className="panel" id="manage-part-types">
         <div className="panel-title">
           <h2>Part Type Management</h2>
-          <button
-            className="icon-button"
-            onClick={() =>
-              document
-                .getElementById("manage-part-types")
-                ?.requestFullscreen?.()
-            }
-          >
-            ⛶
-          </button>
+          <div className="panel-actions">
+            <button onClick={load}>Refresh</button>
+            <button onClick={expandAll} disabled={!expandableIds.length}>
+              Expand all
+            </button>
+            <button onClick={() => setExpanded({})} disabled={!expandableIds.length}>
+              Collapse all
+            </button>
+            <button
+              className="icon-button"
+              onClick={() =>
+                document
+                  .getElementById("manage-part-types")
+                  ?.requestFullscreen?.()
+              }
+            >
+              ⛶
+            </button>
+          </div>
         </div>
         <div className="table-wrap">
           <table>
             <thead>
               <tr>
-                {tableColumns.map((column) => (
-                  <th key={column.key}>{column.label}</th>
-                ))}
+                {tableColumns.map((column) =>
+                  column.key === "select" ? (
+                    <th key={column.key}>
+                      <input
+                        type="checkbox"
+                        aria-label="Select all visible part types"
+                        checked={allVisibleSelected}
+                        disabled={!selectableIds.length}
+                        onChange={toggleAllVisible}
+                        title="Select all visible part types"
+                      />
+                    </th>
+                  ) : (
+                    <SortableHeader
+                      key={column.key}
+                      column={column}
+                      sortable={sortableKeys.includes(column.key)}
+                      sort={sort}
+                      onSort={(key) => setSort((current) => nextSort(current, key))}
+                    />
+                  ),
+                )}
               </tr>
             </thead>
             <tbody>
-              {rows.map((row) => {
+              {sortedRows.map((row) => {
                 const selectable = Boolean(row.sapMaterialType);
                 return (
                   <tr key={row.objectId}>
@@ -936,6 +1042,7 @@ function ManageEdocProjects() {
     });
     setNotice(result.message || "EDOC project import completed successfully.");
     event.target.value = "";
+    await load();
   };
   const rows = data.edocProjects.filter((item) =>
     JSON.stringify(item).toLowerCase().includes(query.toLowerCase()),
@@ -967,6 +1074,16 @@ function ManageEdocProjects() {
         id="edoc-projects"
         title="EDOC Projects"
         rows={rows}
+        onRefresh={load}
+        sortableKeys={[
+          "edocProjectId",
+          "edocProjectName",
+          "regionId",
+          "regionName",
+          "divId",
+          "divName",
+          "plmProject",
+        ]}
         columns={columns([
           ["Project Number", "edocProjectId"],
           ["Project Name", "edocProjectName"],
@@ -995,10 +1112,11 @@ function Users() {
   const save = async (event) => {
     event.preventDefault();
     const isNew = !form.existing;
-    const { existing, ...payload } = form;
-    await api(isNew ? "/users" : `/users/${payload.userId}`, {
+    const { existing, userId, role, ...user } = form;
+    await api(isNew ? "/users" : "/users", {
       method: isNew ? "POST" : "PUT",
-      body: payload,
+      query: isNew ? undefined : { userId },
+      body: isNew ? { userId, role, ...user } : user,
     });
     setForm(null);
     setNotice(`User ${isNew ? "created" : "updated"} successfully.`);
@@ -1049,6 +1167,10 @@ function Users() {
         <button onClick={() => setQuery("")}>Reset</button>
       </section>
       <section className="panel">
+        <div className="panel-title">
+          <h2>Users</h2>
+          <button onClick={load}>Refresh</button>
+        </div>
         <div className="table-wrap">
           <table>
             <thead>
