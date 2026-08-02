@@ -1,0 +1,44 @@
+PS C:\nginx> Get-ChildItem C:\nginx
+
+
+    Directory: C:\nginx
+
+
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+d-----          8/1/2026   9:21 PM                certs
+d-----          8/2/2026   3:55 AM                conf
+d-----          8/1/2026   7:25 PM                contrib
+d-----          8/1/2026   7:25 PM                docs
+d-----          8/1/2026   7:50 PM                html
+d-----          8/1/2026   7:25 PM                logs
+d-----          8/1/2026   7:25 PM                temp
+-a----          8/1/2026   7:08 PM        6626304 nginx.exe
+
+
+PS C:\nginx> Get-ChildItem C:\nginx\html
+
+
+    Directory: C:\nginx\html
+
+
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+d-----          8/2/2026   1:28 AM                pdm-admin-console
+-a----          8/1/2026   7:08 PM            497 50x.html
+-a----          8/1/2026   7:08 PM            896 index.html
+
+
+PS C:\nginx> Get-ChildItem C:\nginx\html\pdm-admin-console
+
+
+    Directory: C:\nginx\html\pdm-admin-console
+
+
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+d-----          8/2/2026  12:03 AM                assets
+d-----          8/1/2026   7:51 PM                mock
+-a----          8/2/2026   1:28 AM              0 findstr
+-a----          8/2/2026  12:02 AM            479 index.html
+
