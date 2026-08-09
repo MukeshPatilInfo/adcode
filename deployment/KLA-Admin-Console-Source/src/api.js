@@ -27,7 +27,7 @@ export async function api(path, options = {}) {
   const method = options.method || "GET";
   if (config.useMockApi) {
     if (path === "/auth/login") {
-      if (!options.body?.userId || !options.body?.password) throw new Error("Invalid username or password. Please try again or contact your administrator for assistance.");
+      if (!options.body?.userId || (!options.body?.password && !options.body?.ssoAuthenticated)) throw new Error("Invalid username or password. Please try again or contact your administrator for assistance.");
       const response = await fetch("/mock/auth_login_response_suceess.json");
       if (!response.ok) throw new Error("Unable to load the mock login response.");
       return { ...await response.json(), userId: options.body.userId };

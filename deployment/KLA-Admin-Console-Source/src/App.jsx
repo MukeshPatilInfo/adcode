@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { api, getJsonPayload } from "./api";
 import { config } from "./config";
+import "./fullscreen.css";
 import loginBackground from "../LogoImages/avatars-92U9qxyH6xyFnXEG-BgKGTg-t500x500.jpg";
 import klaLogo from "../LogoImages/KLA_Corporation-Logo.wine.png";
 
@@ -420,7 +421,7 @@ function Login({ onLogin }) {
     try {
       const result = await api("/auth/login", {
         method: "POST",
-        body: { ...form, ssoAuthenticated: config.ssoEnabled },
+        body: { ...form, ssoAuthenticated: false },
       });
       onLogin(result.token, result.userId || form.userId);
     } catch (reason) {
@@ -429,6 +430,37 @@ function Login({ onLogin }) {
       setBusy(false);
     }
   };
+  const signInWithSso = () => {
+    if (!config.ssoLoginUrl) {
+      setError("SSO login is enabled, but no SSO login URL is configured.");
+      return;
+    }
+    window.location.assign(config.ssoLoginUrl);
+  };
+  useEffect(() => {
+    if (!config.ssoEnabled) return;
+
+    const userId = new URLSearchParams(window.location.search).get("userId");
+    if (!userId) return;
+
+    window.history.replaceState({}, "", window.location.pathname);
+    const completeSsoLogin = async () => {
+      setBusy(true);
+      setError("");
+      try {
+        const result = await api("/auth/login", {
+          method: "POST",
+          body: { userId, password: "", ssoAuthenticated: true },
+        });
+        onLogin(result.token, result.userId || userId);
+      } catch (reason) {
+        setError(reason.message);
+      } finally {
+        setBusy(false);
+      }
+    };
+    completeSsoLogin();
+  }, [onLogin]);
   return (
     <main
       className="login-page"
@@ -486,7 +518,16 @@ function Login({ onLogin }) {
           <button className="primary login-submit" disabled={busy}>
             {busy ? "Signing in..." : "Sign in"}
           </button>
-          {config.ssoEnabled && <small>SSO authentication is enabled.</small>}
+          {config.ssoEnabled && (
+            <button
+              className="primary login-submit"
+              type="button"
+              onClick={signInWithSso}
+              disabled={busy}
+            >
+              SSO Login
+            </button>
+          )}
           <small className="login-note">
             Mock mode accepts any non-empty username and password.
           </small>
@@ -533,6 +574,13 @@ function LogPage({ page }) {
   useEffect(() => {
     load();
   }, []); // Initial dashboard load uses the configurable date range.
+  useEffect(() => {
+    if (!selection) return;
+
+    const details = document.getElementById("transaction-details");
+    details?.scrollIntoView({ behavior: "smooth", block: "start" });
+    details?.focus({ preventScroll: true });
+  }, [selection]);
   const rows = useMemo(
     () =>
       (data.content || []).filter(
@@ -552,7 +600,11 @@ function LogPage({ page }) {
           ? `${page.endpoint}/metadata/${transactionId}`
           : `/audit/component-logs/transaction/${transactionId}`,
       );
-      setSelection({ transactionId, data: result.data || result });
+      setSelection((current) => ({
+        transactionId,
+        data: result.data || result,
+        version: (current?.version || 0) + 1,
+      }));
     } catch (reason) {
       setError(reason.message);
     }
@@ -602,7 +654,6 @@ function LogPage({ page }) {
           setQuery("");
           setLocalStatus("");
         }}
-        includeStatus={page.title !== "Search"}
         includePartialStatus={page.title === "Create Part"}
       />
       {error && <div className="alert error">{error}</div>}
@@ -619,7 +670,13 @@ function LogPage({ page }) {
           onRefresh={load}
         />
       )}
-      {selection && <Details page={page} selection={selection} />}
+      {selection && (
+        <Details
+          key={selection.version}
+          page={page}
+          selection={selection}
+        />
+      )}
       {modal && (
         <Modal title={modal.title} onClose={() => setModal(null)}>
           <pre>
@@ -781,7 +838,11 @@ function Details({ page, selection }) {
     ["Timestamp", "timeStamp"],
   ]);
   return (
-    <div className="details">
+    <div
+      id="transaction-details"
+      className="details transaction-details-focus"
+      tabIndex={-1}
+    >
       <h2>
         Transaction details: <span>{selection.transactionId}</span>
       </h2>
