@@ -1,0 +1,154 @@
+.app-shell {
+  background: #edf7ff;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.main-content {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+  padding: 0 22px 18px;
+}
+
+.topbar {
+  background: #f9fcff;
+  flex: 0 0 58px;
+  margin: 0 -22px;
+  padding: 0 22px;
+}
+
+.log-page {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.log-page-controls {
+  flex: 0 0 auto;
+  padding: 14px 0 10px;
+}
+
+.page-heading {
+  margin-bottom: 12px;
+}
+
+.page-heading h1 {
+  color: #073b68;
+}
+
+.metrics {
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.metric,
+.panel {
+  border-color: #c8dfef;
+  box-shadow: 0 2px 8px #0b6da30f;
+}
+
+.metric {
+  background: #ffffff;
+  border-top-color: #28b8ed;
+  padding: 13px 16px;
+}
+
+.metric strong {
+  color: #063e6a;
+  font-size: 24px;
+  margin-top: 5px;
+}
+
+.filters {
+  background: #fbfdff;
+  margin: 0;
+  padding: 13px 16px;
+}
+
+.filter-grid {
+  gap: 8px;
+}
+
+.filter-grid input,
+.filter-grid select {
+  min-height: 34px;
+}
+
+.log-page-results {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-height: 0;
+  overflow: auto;
+  padding: 0 2px 8px;
+}
+
+.log-page-results > .panel {
+  display: flex;
+  flex: 0 0 auto;
+  flex-direction: column;
+  margin: 10px 0 0;
+  min-height: auto;
+}
+
+.log-page-results > .panel .table-wrap {
+  height: auto;
+  max-height: min(500px, 42vh);
+  min-height: 0;
+}
+
+.log-page-results .details {
+  flex: 0 0 auto;
+  margin-bottom: 10px;
+}
+
+.table-footer {
+  color: #426a85;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 9px 2px 0;
+  text-align: right;
+}
+
+@media (min-width: 1440px) {
+  .main-content {
+    padding-left: 30px;
+    padding-right: 30px;
+  }
+
+  .topbar {
+    margin-left: -30px;
+    margin-right: -30px;
+    padding-left: 30px;
+    padding-right: 30px;
+  }
+
+  .filter-grid {
+    gap: 12px;
+  }
+}
+
+@media (max-width: 900px) {
+  .main-content {
+    overflow: auto;
+  }
+
+  .log-page {
+    min-height: calc(100vh - 76px);
+  }
+
+  .log-page-controls {
+    padding-top: 10px;
+  }
+
+  .filters {
+    gap: 12px;
+  }
+
+  .local {
+    margin-top: 0;
+  }
+}

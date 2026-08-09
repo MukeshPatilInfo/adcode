@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { api, getJsonPayload } from "./api";
 import { config } from "./config";
+import "./layout.css";
 import "./fullscreen.css";
 import loginBackground from "../LogoImages/avatars-92U9qxyH6xyFnXEG-BgKGTg-t500x500.jpg";
 import klaLogo from "../LogoImages/KLA_Corporation-Logo.wine.png";
@@ -309,6 +310,7 @@ function Table({
   onRefresh,
   sortableKeys = [],
   id,
+  totalRecords,
 }) {
   const [sort, setSort] = useState({ key: "", direction: "asc" });
   const sortedRows = useMemo(() => sortRows(rows, sort), [rows, sort]);
@@ -318,7 +320,11 @@ function Table({
       <div className="panel-title">
         <h2>{title}</h2>
         <div className="panel-actions">
-          {onRefresh && <button onClick={onRefresh}>Refresh</button>}
+          {onRefresh && (
+            <button className="refresh-button" onClick={onRefresh}>
+              Refresh
+            </button>
+          )}
           <button
             className="icon-button"
             title="Expand table"
@@ -365,6 +371,9 @@ function Table({
             )}
           </tbody>
         </table>
+      </div>
+      <div className="table-footer">
+        Total records: {totalRecords ?? rows.length}
       </div>
     </section>
   );
@@ -636,47 +645,52 @@ function LogPage({ page }) {
     </div>
   ));
   return (
-    <>
-      <PageHeading
-        title={page.title}
-        subtitle="Audit transactions and integration activity."
-      />
-      {cards.length > 0 && <div className="metrics">{cards}</div>}
-      <Filters
-        server={server}
-        setServer={setServer}
-        onSearch={load}
-        query={query}
-        setQuery={setQuery}
-        localStatus={localStatus}
-        setLocalStatus={setLocalStatus}
-        onReset={() => {
-          setQuery("");
-          setLocalStatus("");
-        }}
-        includePartialStatus={page.title === "Create Part"}
-      />
-      {error && <div className="alert error">{error}</div>}
-      {loading ? (
-        <div className="loading">Loading transactions...</div>
-      ) : (
-        <Table
-          id={`table-${page.title}`}
-          title={`${page.title} Transactions`}
-          columns={page.columns}
-          rows={rows}
-          onTransaction={page.details ? selectTransaction : undefined}
-          onJson={showJson}
-          onRefresh={load}
+    <section className="log-page">
+      <div className="log-page-controls">
+        <PageHeading
+          title={page.title}
+          subtitle="Audit transactions and integration activity."
         />
-      )}
-      {selection && (
-        <Details
-          key={selection.version}
-          page={page}
-          selection={selection}
+        {cards.length > 0 && <div className="metrics">{cards}</div>}
+        <Filters
+          server={server}
+          setServer={setServer}
+          onSearch={load}
+          query={query}
+          setQuery={setQuery}
+          localStatus={localStatus}
+          setLocalStatus={setLocalStatus}
+          onReset={() => {
+            setQuery("");
+            setLocalStatus("");
+          }}
+          includePartialStatus={page.title === "Create Part"}
         />
-      )}
+        {error && <div className="alert error">{error}</div>}
+      </div>
+      <div className="log-page-results">
+        {loading ? (
+          <div className="loading">Loading transactions...</div>
+        ) : (
+          <Table
+            id={`table-${page.title}`}
+            title={`${page.title} Transactions`}
+            columns={page.columns}
+            rows={rows}
+            onTransaction={page.details ? selectTransaction : undefined}
+            onJson={showJson}
+            onRefresh={load}
+            totalRecords={data.totalElements ?? data.total ?? data.content?.length}
+          />
+        )}
+        {selection && (
+          <Details
+            key={selection.version}
+            page={page}
+            selection={selection}
+          />
+        )}
+      </div>
       {modal && (
         <Modal title={modal.title} onClose={() => setModal(null)}>
           <pre>
@@ -686,7 +700,7 @@ function LogPage({ page }) {
           </pre>
         </Modal>
       )}
-    </>
+    </section>
   );
 }
 function PageHeading({ title, subtitle, actions }) {

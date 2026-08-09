@@ -16,9 +16,13 @@
   flex: 0 0 auto;
 }
 
+.panel:fullscreen .refresh-button {
+  display: none;
+}
+
 .panel:fullscreen .table-wrap {
-  flex: 1 1 auto;
-  max-height: none;
+  flex: 0 1 auto;
+  max-height: calc(100vh - 130px);
   min-height: 0;
   overflow: auto;
 }
