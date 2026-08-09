@@ -1,0 +1,173 @@
+﻿ProjectName,ProjectNumber,Region,RegionName,DivName,DivNum,PLMProject,PNList
+CEG-AA: Fixtures,573,4,US (Ann Arbor),CEG-AA,31,RAP AA Dev Eng,TRUE
+CEG-AA: Mechatronics,497,4,US (Ann Arbor),CEG-AA,31,RAP AA Dev Eng,TRUE
+CEG-AA: Vacuum,500,4,US (Ann Arbor),CEG-AA,31,RAP AA Dev Eng,TRUE
+CTO-SGP: (Internal) CFE Projects,534,2,Singapore,CTO-SGP,14,CTO - Engineering,TRUE
+CTO-SGP: (Internal) Laser Projects,532,2,Singapore,CTO-SGP,14,CTO - Engineering,TRUE
+CTO-SGP: (Internal) MISC Research Projects,536,2,Singapore,CTO-SGP,14,CTO - Engineering,TRUE
+CTO-SGP: (Internal) Plasma Projects,533,2,Singapore,CTO-SGP,14,CTO - Engineering,TRUE
+CTO-SGP: (Internal) Sensor & Camera Projects,535,2,Singapore,CTO-SGP,14,CTO - Engineering,TRUE
+CTO-US: Falcon,370,1,US,CTO-US,15,SCM WIN Denali,TRUE
+CTO-US: Panther,334,1,US,CTO-US,15,Spares Mfg - RAP-3888,TRUE
+FAST: 2/4MM BOW,554,1,US,FAST,6,KTI Viking-4002,TRUE
+FAST: Cayman,378,1,US,FAST,6,KTI Viking-4002,TRUE
+FAST: F10,224,1,US,FAST,6,KTI Viking-4002,TRUE
+FAST: F20,362,1,US,FAST,6,KTI Viking-4002,TRUE
+FAST: F30,441,1,US,FAST,6,KTI Viking-4002,TRUE
+FAST: FFC,555,1,US,FAST,6,KTI Viking-4002,TRUE
+FAST: LSP3,391,1,US,FAST,6,KTI Viking-4002,TRUE
+FAST: Panel,585,1,US,FAST,6,KTI Viking-4002,TRUE
+FAST: Reventon,461,1,US,FAST,6,KTI Viking-4002,TRUE
+FAST: SO2,424,1,US,FAST,6,KTI Viking-4002,TRUE
+FAST: SS007,518,1,US,FAST,6,KTI Viking-4002,TRUE
+FAST: SXR1,237,1,US,FAST,6,KTI AXION T2000-4004,TRUE
+FAST: T2500,444,1,US,FAST,6,KTI AXION T2000-4004,TRUE
+FAST: Viking - High Bow Option,392,1,US,FAST,6,KTI Viking-4002,TRUE
+FAST: Viking - SS11K,158,1,US,FAST,6,KTI Viking-4002,TRUE
+FAST: Viking - SS12K,307,1,US,FAST,6,KTI Viking-4002,TRUE
+FAST: Viking - SS15K,629,1,US,FAST,6,KTI Viking-4002,TRUE
+GSS-E-SGP: Eagle-Puma,552,2,Singapore,GSS-E-SGP,20,Spares Mfg - WIN-3888,TRUE
+GSS-E-SGP: Eagle-SP2,551,2,Singapore,GSS-E-SGP,20,Spares Mfg - SFS-3888,TRUE
+GSS-E-SGP: Panther,398,2,Singapore,GSS-E-SGP,20,Spares Mfg - RAP-3888,TRUE
+GSS-E-US: Panther,363,1,US,GSS Eng,8,Spares Mfg - RAP-3888,TRUE
+KTG Swift: CIRCL Sustaining (2001),449,2,Singapore,KTS,11,MIE,TRUE
+KTS LS: 9990 - Camera (1001),606,2,Singapore,KTS,11,WIN Cayman,TRUE
+KTS LS: 9990 BE - Optics (SCM),558,2,Singapore,KTS,11,SCM WIN Cayman,TRUE
+KTS LS: 9990 FE - Frame/Stage/Racks,559,2,Singapore,KTS,11,SCM WIN Cayman,TRUE
+KTS LS: 9995 BE - Optics,612,2,Singapore,KTS,11,SCM WIN Cayman,TRUE
+KTS LS: 9995 FE - Frame/Stage/Racks,613,2,Singapore,KTS,11,SCM WIN Cayman,TRUE
+KTS LS: Intrepid BE - Optics/oFrame/External Cbls,599,2,Singapore,KTS,11,SCM WIN LS 10XX,TRUE
+KTS LS: Intrepid FE - iFrame/Stage/Racks,600,2,Singapore,KTS,11,SCM WIN LS 10XX,TRUE
+KTS LS: Puma Lynx BE - Optics (SCM),513,2,Singapore,KTS,11,SCM WIN Cayman,TRUE
+KTS LS: Puma Lynx FE - Frame/Stage/Racks,468,2,Singapore,KTS,11,SCM WIN Cayman,TRUE
+KTS Swift: 8950 (3008),524,2,Singapore,KTS,11,SCM Altair,TRUE
+KTS Swift: 8970 (3008),308,2,Singapore,KTS,11,SCM Altair,TRUE
+KTS Swift: Altair Sustaining (3008),250,2,Singapore,KTS,11,SCM Altair,TRUE
+KTS Swift: CIRCL / Features (3008),427,2,Singapore,KTS,11,SCM Altair,TRUE
+KTS Swift: Kronos-IR,618,2,Singapore,KTS,11,SCM Altair,TRUE
+KTS Swift: Panel Edge Inspect,617,2,Singapore,KTS,11,SCM Altair,TRUE
+LS: 9980 BE - Optics (SCM),134,1,US,LS,5,SCM WIN Cayman,TRUE
+LS: 9980 FE - Frame/Stage/Racks (SCM),135,1,US,LS,5,SCM WIN Cayman,TRUE
+LS: 9990 BE - Optics (SCM),203,1,US,LS,5,SCM WIN Cayman,TRUE
+LS: 9990 FE - Frame/Stage/Racks (SCM),204,1,US,LS,5,SCM WIN Cayman,TRUE
+LS: 9995 BE - Optics,609,1,US,LS,5,SCM WIN Cayman,TRUE
+LS: 9995 FE - Frame/Stage/Racks,610,1,US,LS,5,SCM WIN Cayman,TRUE
+LS: 999x - Camera (1001),517,1,US,LS,5,WIN Cayman,TRUE
+LS: Denali BE - Optics (SCM),104,1,US,LS,5,SCM WIN Denali,TRUE
+LS: Denali FE - Frame/Stage/Racks (SCM),106,1,US,LS,5,SCM WIN Denali,TRUE
+LS: Falcon (SCM),187,1,US,LS,5,SCM WIN Denali,TRUE
+LS: Intrepid BE - Optics/oFrame/Extern Cbls,504,1,US,LS,5,SCM WIN LS 10XX,TRUE
+LS: Intrepid FE - iFrame/Stage/Racks,505,1,US,LS,5,SCM WIN LS 10XX,TRUE
+LS: Puma 880/890 - Camera (1001),176,1,US,LS,5,WIN Cayman,TRUE
+LS: Puma 880/890 BE - Optics (SCM),170,1,US,LS,5,SCM WIN Cayman,TRUE
+LS: Puma 880/890 FE - Frame/Stage/Racks (SCM),315,1,US,LS,5,SCM WIN Cayman,TRUE
+LS: Puma 898 BE- Optics (SCM),342,1,US,LS,5,SCM WIN Cayman,TRUE
+LS: Puma 898 FE- Frame/Stage/Racks (SCM),343,1,US,LS,5,SCM WIN Cayman,TRUE
+LS: Puma Lynx BE - Optics (SCM),512,1,US,LS,5,SCM WIN Cayman,TRUE
+LS: Puma Lynx FE - Frame/Stage/Racks,467,1,US,LS,5,SCM WIN Cayman,TRUE
+LS: Voyager 1035 BE - Optics/oFrame/Extern Cbls,345,1,US,LS,5,SCM WIN Denali,TRUE
+LS: Voyager 1035 FE - iFrame/Stage/Racks,346,1,US,LS,5,SCM WIN Denali,TRUE
+LS: Voyager 1038 BE - Optics/oFrame/Extern Cbls,451,1,US,LS,5,SCM WIN Denali,TRUE
+LS: Voyager 1038 FE - iFrame/Stage/Racks,452,1,US,LS,5,SCM WIN Denali,TRUE
+LS: Voyager 1039 BE - Optics/oFrame/Extern Cbls,541,1,US,LS,5,SCM WIN Denali,TRUE
+LS: Voyager 1039 FE - iFrame/Stage/Racks,542,1,US,LS,5,SCM WIN Denali,TRUE
+LS: Voyager 105x BE - Optics/oFrame/Extern Cbls,371,1,US,LS,5,SCM WIN Denali,TRUE
+LS: Voyager 105x FE - iFrame/Stage/Racks,181,1,US,LS,5,SCM WIN Denali,TRUE
+LS: Voyager 108x BE - Optics/oFrame/Extern Cbls,498,1,US,LS,5,SCM WIN LS 10XX,TRUE
+LS: Voyager 108x FE - iFrame/Stage/Racks,499,1,US,LS,5,SCM WIN LS 10XX,TRUE
+MACH: SONIC,232,1,US,Rapid,1,MACH - 1004,TRUE
+OMD: A800,259,3,Israel,OMD,12,KTI A800-4001,TRUE
+OMD: A850,359,3,Israel,OMD,12,KLAI A850 4001,TRUE
+OMD: A900,456,3,Israel,OMD,12,KLAI A900 4001,TRUE
+OMD: Archer AP,436,3,Israel,OMD,12,KLAI Archer AP 4001,TRUE
+OMD: Archer High Topo,431,3,Israel,OMD,12,KTI A700-4001,TRUE
+OMD: ATL 200,262,3,Israel,OMD,12,KTI LCM-TL-4001,TRUE
+OMD: ATL 250,587,3,Israel,OMD,12,KTI LCM-TL-4001,TRUE
+OMD: ATL 300,525,3,Israel,OMD,12,KTI LCM-TL-4001,TRUE
+OMD: irArcher,326,3,Israel,OMD,12,KLAI irArcher 4001,TRUE
+RAP: 5XX - CVD,73,1,US,Rapid,1,RAP 5XX,TRUE
+RAP: 5XX-XRT,545,1,US,Rapid,1,RAP 5XX,TRUE
+RAP: 6XX - 640,99,1,US,Rapid,1,RAP 6XX,TRUE
+RAP: 6XX - 650,62,1,US,Rapid,1,RAP 6XX,TRUE
+RAP: 6XX - 670,100,1,US,Rapid,1,RAP 6XX,TRUE
+RAP: 6XX - CVD,28,1,US,Rapid,1,RAP 6XX,TRUE
+RAP: 7XX - 710 (EUV),66,1,US,Rapid,1,RAP 7XX,TRUE
+RAP: 8XX - 810,165,1,US,Rapid,1,RAP 8XX,TRUE
+RAP: COGS Reduction,126,1,US,Rapid,1,RAP 6XX,TRUE
+RAP: HW Adv Tech,121,1,US,Rapid,1,RAP 6XX,TRUE
+RAP: RDC 200,324,1,US,Rapid,1,RAP 6XX,TRUE
+RAP: RDC 300,562,1,US,Rapid,1,RAP 6XX,TRUE
+RAP: X-15 (1001 - Camera Only),168,1,US,Rapid,1,RAP X-15 - 1001,TRUE
+RAP: X-15 (FlashScan),133,1,US,Rapid,1,SCM RAP X-15,TRUE
+SFS: Apollo,484,1,US,SFS,3,SCM SFS Apollo,TRUE
+SFS: Apollo - Restricted,543,1,US,SFS,3,SCM SFS Apollo RESTRICTED,TRUE
+SFS: BSS/SSC 2ND SRC,422,1,US,SFS,3,SCM SFS SP5 XPC,TRUE
+SFS: NTHWK (SP8),213,1,US,SFS,3,SCM SFS Nighthawk,TRUE
+SFS: NTHWK (SP8) - Restricted,601,1,US,SFS,3,SCM SFS Nighthawk RESTRICTED,TRUE
+SFS: NTHWK - Camera (1001),369,1,US,SFS,3,SFS Eagle - 1001,TRUE
+SFS: NTHWK - MBC,387,1,US,SFS,3,SCM SFS Nighthawk,TRUE
+SFS: PWG5,256,1,US,SFS,3,SCM WAFERSIGHT PWG,TRUE
+SFS: SP6 3D,581,1,US,SFS,3,SCM SFS SP6-3D,TRUE
+SFS: SP7 Sustaining,397,1,US,SFS,3,SCM SFS Eagle,TRUE
+SWIFT: 8970,167,1,US,SWIFT,4,SCM Altair,TRUE
+SWIFT: 8970 (1001 - Camera Only),341,1,US,SWIFT,4,WIN Cayman,TRUE
+SWIFT: Altair CIP/Sustaining,147,1,US,SWIFT,4,SCM Altair,TRUE
+WIN: Celestiq BE - LH/Optics/OptoMech/CPC,515,1,US,BBP,13,WIN BBP R9XX,TRUE
+WIN: Celestiq FE - iFrame/Stage/Racks (SCM),516,1,US,BBP,13,SCM WIN BBP R9XX,TRUE
+WIN: Cosworth BE - LH/Optics,349,1,US,BBP,13,WIN BBP 39XX,TRUE
+WIN: Cosworth BE - oFrame/External Cables,561,1,US,BBP,13,WIN BBP 39XX,TRUE
+WIN: Cosworth BE - OptoMech,381,1,US,BBP,13,WIN BBP 39XX,TRUE
+WIN: Cosworth FE - iFrame/Stage/Racks (SCM),550,1,US,BBP,13,SCM WIN BBP 39XX,TRUE
+WIN: Hennessy BE - Optics/oFrame/External Cables,327,1,US,BBP,13,WIN Skyline,TRUE
+WIN: Hennessy FE - iFrame/Stage/Racks (SCM),328,1,US,BBP,13,SCM WIN Skyline,TRUE
+WIN: HYDRA FE - Racks,383,1,US,BBP,13,SCM WIN Skyline,TRUE
+WIN: IDA (SCM),365,1,US,BBP,13,SCM WIN Skyline,TRUE
+WIN: Ioniq BE - LH/Optics/OptoMech/CPC,508,1,US,BBP,13,WIN BBP 39XX,TRUE
+WIN: Ioniq FE - iFrame/Stage/Racks (SCM),509,1,US,BBP,13,SCM WIN BBP 39XX,TRUE
+WIN: Lyriq BE - LH/Optics/OptoMech/CPC,577,1,US,BBP,13,WIN BBP R9XX,TRUE
+WIN: Lyriq FE - iFrame/Stage/Racks (SCM),578,1,US,BBP,13,SCM WIN BBP R9XX,TRUE
+WIN: Monza BE - Optics/oFrame/External Cables,615,1,US,BBP,13,WIN BBP Monza,TRUE
+WIN: Monza FE – Platform/Stage/Racks (SCM),616,1,US,BBP,13,SCM WIN BBP Monza,TRUE
+WIN: Pantera BE - LH/Optics,257,1,US,BBP,13,WIN Skyline,TRUE
+WIN: Pantera BE - OptoMech,442,1,US,BBP,13,WIN Skyline,TRUE
+WIN: Pantera FE - iFrame/Stage/Rack (SCM),416,1,US,BBP,13,SCM WIN Skyline,TRUE
+WIN: Regera BE - LH/Optics/OptoMech/CPC,299,1,US,BBP,13,WIN BBP R9XX,TRUE
+WIN: Regera FE - iFrame/Rack/Stage (SCM),300,1,US,BBP,13,SCM WIN BBP R9XX,TRUE
+WIN: Skyline BE - Optics/oFrame,155,1,US,BBP,13,WIN Skyline,TRUE
+WIN: Skyline FE - iFrame/Stage/Racks (SCM),156,1,US,BBP,13,SCM WIN Skyline,TRUE
+WIN: Sustaining 29XX BE - LH/Opto Mech/Options,593,1,US,BBP,13,WIN BBP 29XX,TRUE
+WIN: Sustaining 29XX FE - Rack/Stage/Frame (SCM),592,1,US,BBP,13,SCM WIN BBP 29XX,TRUE
+WIN: Sustaining 39XX BE - LH/Opto Mech/oFrame/Opt,595,1,US,BBP,13,WIN BBP 39XX,TRUE
+WIN: Sustaining 39XX FE - Rack/Stage/iFrame (SCM),594,1,US,BBP,13,SCM WIN BBP 39XX,TRUE
+WIN: Targa BE - Optics,141,1,US,BBP,13,WIN Targa,TRUE
+WIN: Targa FE - iFrame/Stage/Racks (SCM),142,1,US,BBP,13,SCM WIN Targa,TRUE
+WIN: Taycan BE - Optics,351,1,US,BBP,13,WIN Targa,TRUE
+WIN: Taycan FE - iFrame/Stage/Racks,352,1,US,BBP,13,SCM WIN Targa,TRUE
+WIN: Venom - LH/Optics/OptoMech/CPC,579,1,US,BBP,13,WIN BBP VUV,TRUE
+WIN: VIVA GEN4 (1001) - Verify First,607,1,US,BBP,13,WIN Skyline,TRUE
+WIN: VIVA GEN4 (SCM),443,1,US,BBP,13,SCM WIN Skyline,TRUE
+WIN: Zephyr BE - LH/Optics/OptoMech,301,1,US,BBP,13,WIN Vanquish,TRUE
+WIN: Zephyr FE - iFrame/Rack/Stage (SCM),302,1,US,BBP,13,SCM WIN Vanquish,TRUE
+EBI: eS8XX (3888),41,1,US,EBRC,2,Spares Mfg - EBM-3888,TRUE
+EBM: ADC3.0 (SMARTS),107,1,US,EBRC,2,SCM EDR-7XXX,TRUE
+EBM: Buzz,175,1,US,EBRC,2,SCM EBM Lotus,TRUE
+EBM: eDR-7500,151,1,US,EBRC,2,SCM EDR-7XXX,TRUE
+EBM: eDR-7500AP,165,1,US,EBRC,2,SCM EDR-7XXX,TRUE
+EBM: eDR-7XXX Sustaining,22,1,US,EBRC,2,SCM EDR-7XXX,TRUE
+EBM: eDRX1 (exige),123,1,US,EBRC,2,SCM EBM Lotus,TRUE
+EBM: eDRX2,140,1,US,EBRC,2,SCM EBM Lotus,TRUE
+EBM: eDRX3,149,1,US,EBRC,2,SCM EBM Lotus,TRUE
+EBM: eM1 (C1),141,1,US,EBRC,2,SCM EBM Lotus,TRUE
+EBM: eM200,155,1,US,EBRC,2,SCM EBM Lotus,TRUE
+EBM: eM3,162,1,US,EBRC,2,SCM EBM Lotus,TRUE
+EBM: eMA100,177,1,US,EBRC,2,SCM EBM Lotus,TRUE
+EBM: Emira,171,1,US,EBRC,2,SCM EBM Lotus,TRUE
+EBM: eSi50 (eSL20),124,1,US,EBRC,2,SCM EBM Lotus,TRUE
+EBM: eSL10 - Development (lotus),80,1,US,EBRC,2,SCM EBM Lotus,TRUE
+EBM: eSV100 (T1),105,1,US,EBRC,2,SCM EBM Lotus,TRUE
+EBM: eSV200 (T2),153,1,US,EBRC,2,SCM EBM Lotus,TRUE
+EBM: Gravity,147,1,US,EBRC,2,SCM EBM Lotus,TRUE
+EBM: K1,174,1,US,EBRC,2,SCM EBM Lotus,TRUE
+EBM: TOP E-SRC,146,1,US,EBRC,2,SCM EBM Lotus,TRUE
+OMD: E200,128,1,US,EBRC,2,SCM OMD E2XX,TRUE
+SCM eDR-5XXX (3888),30,1,US,EBRC,2,Spares Mfg - EBM-3888,TRUE
