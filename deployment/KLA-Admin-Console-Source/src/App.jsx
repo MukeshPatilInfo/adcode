@@ -49,7 +49,7 @@ const logPages = {
   "create-part": {
     title: "Create Part",
     endpoint: "/audit/create-part-logs",
-    jsonUsecase: "createpart",
+    jsonUsecase: "create-part-logs",
     summary: [
       "Total Parts Created",
       "Total Success",
@@ -76,7 +76,7 @@ const logPages = {
   dashroll: {
     title: "Dashroll",
     endpoint: "/audit/dashroll-logs",
-    jsonUsecase: "dashroll",
+    jsonUsecase: "dashroll-logs",
     summary: ["Total Dashroll Created", "Total Success", "Total Failed"],
     details: "component",
     columns: columns([
@@ -100,7 +100,7 @@ const logPages = {
   upload: {
     title: "Upload to Enovia",
     endpoint: "/audit/upload-to-enovia-logs",
-    jsonUsecase: "uploadenovia",
+    jsonUsecase: "upload-to-enovia-logs",
     summary: ["Total Upload", "Total Success", "Total Failed"],
     details: "metadata",
     columns: columns([
@@ -131,13 +131,13 @@ const logPages = {
       ["Enovia Update Timestamp", "enoviaUpdateTimestamp"],
       ["PDM Update Timestamp", "pdmUpdateTimestamp"],
       ["PDM Update Status", "pdmUpdateStatus"],
-      ["PDM Update Message", "pdmUpdateMsg"],
+      ["PDM Update Message", "pdmUpdateError"],
     ]),
   },
   search: {
     title: "Search",
     endpoint: "/audit/search-logs",
-    jsonUsecase: "search",
+    jsonUsecase: "search-logs",
     details: "component",
     columns: columns([
       ["Transaction ID", "transactionId"],
@@ -156,7 +156,7 @@ const logPages = {
   "higher-dash": {
     title: "Get Higher Dash",
     endpoint: "/audit/get-high-dash-logs",
-    jsonUsecase: "highdash",
+    jsonUsecase: "get-high-dash-logs",
     details: "component",
     columns: columns([
       ["Transaction ID", "transactionId"],
@@ -176,7 +176,7 @@ const logPages = {
   "get-co": {
     title: "Enovia Get CO",
     endpoint: "/audit/query-co-logs",
-    jsonUsecase: "getco",
+    jsonUsecase: "query-co-logs",
     details: "component",
     columns: columns([
       ["Transaction ID", "transactionId"],
@@ -885,8 +885,7 @@ function ManagePartTypes() {
     <>
       <PageHeading
         title="Manage Part Types"
-        subtitle={`Total Part Types: ${response.totalPartTypes ?? response.partTypes.length} | CAD: ${response.totalCAD || 0} | Non-CAD: ${response.totalNonCAD || 0}`}
-        actions={
+        subtitle={`Total Part Types: ${(response.totalCad || 0) + (response.totalNonCad || 0)} | CAD: ${response.totalCad || 0} | Non-CAD: ${response.totalNonCad || 0}`}actions={
           <button
             className="primary"
             disabled={!selected.length}
