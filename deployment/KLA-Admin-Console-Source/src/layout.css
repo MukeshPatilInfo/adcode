@@ -117,8 +117,23 @@
   flex: 1 1 auto;
   flex-direction: column;
   min-height: 0;
-  overflow: auto;
+  overflow: hidden;
+  overscroll-behavior: contain;
   padding: 0 2px 8px;
+}
+
+.log-page-results.has-details {
+  overflow: auto;
+}
+
+.log-page-results:not(.has-details) > .panel {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.log-page-results:not(.has-details) > .panel .table-wrap {
+  flex: 1 1 auto;
+  max-height: none;
 }
 
 .log-page-results > .panel {
@@ -175,8 +190,58 @@
 
 .log-page-results > .panel .table-wrap {
   height: auto;
-  max-height: min(620px, 52vh);
+  max-height: min(620px, 55vh);
   min-height: 0;
+}
+
+.table-wrap {
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+}
+
+.management-page {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-height: 0;
+  padding-top: 4px;
+}
+
+.management-page > .page-heading {
+  margin-bottom: 6px;
+}
+
+.management-page > .page-heading h1 {
+  color: #073b68;
+  font-size: 20px;
+}
+
+.management-page > .page-heading p {
+  font-size: 11px;
+  margin-top: 2px;
+}
+
+.management-page > .panel {
+  margin: 4px 0;
+  padding: 8px 10px;
+}
+
+.management-page > .panel:not(.inline-filters) {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  margin-bottom: 0;
+  min-height: 0;
+}
+
+.management-page > .panel:not(.inline-filters) .table-wrap {
+  flex: 1 1 auto;
+  max-height: none;
+  min-height: 0;
+}
+
+.management-page > .panel .panel-title {
+  margin-bottom: 6px;
 }
 
 .log-page-results .details {

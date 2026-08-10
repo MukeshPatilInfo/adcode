@@ -381,13 +381,15 @@ function Table({
 function renderCell(row, column, onTransaction, onJson) {
   const value = row[column.key];
   if (column.key === "transactionId")
-    return (
+    return onTransaction ? (
       <TransactionId
         value={value}
-        onTransaction={
-          onTransaction ? () => onTransaction(value) : undefined
-        }
+        onTransaction={() => onTransaction(value)}
       />
+    ) : value === null || value === undefined || value === "" ? (
+      "-"
+    ) : (
+      String(value)
     );
   if (column.key === "status" || column.key === "pdmUpdateStatus")
     return <Status value={value} />;
@@ -717,7 +719,7 @@ function LogPage({ page }) {
         />
         {error && <div className="alert error">{error}</div>}
       </div>
-      <div className="log-page-results">
+      <div className={`log-page-results${selection ? " has-details" : ""}`}>
         {loading ? (
           <div className="loading">Loading transactions...</div>
         ) : (
@@ -1170,7 +1172,7 @@ function ManageEdocProjects() {
     JSON.stringify(item).toLowerCase().includes(query.toLowerCase()),
   );
   return (
-    <>
+    <section className="management-page">
       <PageHeading
         title="Manage EDOC Projects"
         subtitle={`Total EDOC Projects: ${data.projectcount || data.edocProjects.length}`}
@@ -1219,7 +1221,7 @@ function ManageEdocProjects() {
           ["Updated At", "updatedAt"],
         ])}
       />
-    </>
+    </section>
   );
 }
 function Users() {
