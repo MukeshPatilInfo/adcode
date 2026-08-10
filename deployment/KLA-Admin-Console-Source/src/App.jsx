@@ -580,9 +580,12 @@ function LogPage({ page }) {
       setLoading(false);
     }
   };
-  useEffect(() => {
-    load();
-  }, []); // Initial dashboard load uses the configurable date range.
+   useEffect(() => {
+     load();
+   }, []); // Initial dashboard load uses the configurable date range.
+
+
+
   useEffect(() => {
     if (!selection) return;
 
@@ -1183,6 +1186,15 @@ function Users() {
   useEffect(() => {
     load();
   }, []);
+  useEffect(() => {
+if (!notice) return;
+
+const timer = setTimeout(() => {
+setNotice("");
+}, 3000);
+
+return () => clearTimeout(timer);
+}, [notice]);
   const save = async (event) => {
     event.preventDefault();
     const isNew = !form.existing;
