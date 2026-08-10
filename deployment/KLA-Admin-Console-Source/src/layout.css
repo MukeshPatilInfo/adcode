@@ -1,5 +1,5 @@
 .app-shell {
-  background: #edf7ff;
+  background: #f5fbff;
   height: 100vh;
   overflow: hidden;
 }
@@ -13,10 +13,44 @@
 }
 
 .topbar {
-  background: #f9fcff;
+  background: #ffffff;
   flex: 0 0 58px;
   margin: 0 -22px;
   padding: 0 22px;
+}
+
+.topbar-context {
+  align-items: center;
+  display: flex;
+  gap: 22px;
+  min-width: 0;
+}
+
+.topbar-brand {
+  color: #486581;
+  flex: 0 0 auto;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.topbar .page-heading {
+  border-left: 1px solid #d9e7f0;
+  margin: 0;
+  min-width: 0;
+  padding-left: 22px;
+}
+
+.topbar .page-heading h1 {
+  color: #073b68;
+  font-size: 18px;
+  line-height: 1.15;
+}
+
+.topbar .page-heading p {
+  color: #627d98;
+  font-size: 11px;
+  margin: 2px 0 0;
+  white-space: nowrap;
 }
 
 .log-page {
@@ -28,20 +62,12 @@
 
 .log-page-controls {
   flex: 0 0 auto;
-  padding: 14px 0 10px;
-}
-
-.page-heading {
-  margin-bottom: 12px;
-}
-
-.page-heading h1 {
-  color: #073b68;
+  padding: 3px 0 4px;
 }
 
 .metrics {
-  gap: 12px;
-  margin-bottom: 12px;
+  gap: 6px;
+  margin-bottom: 4px;
 }
 
 .metric,
@@ -52,20 +78,24 @@
 
 .metric {
   background: #ffffff;
-  border-top-color: #28b8ed;
-  padding: 13px 16px;
+  border-top: 3px solid #28b8ed;
+  padding: 6px 10px;
+}
+
+.metric span {
+  font-size: 10px;
 }
 
 .metric strong {
   color: #063e6a;
-  font-size: 24px;
-  margin-top: 5px;
+  font-size: 19px;
+  margin-top: 1px;
 }
 
 .filters {
   background: #fbfdff;
   margin: 0;
-  padding: 13px 16px;
+  padding: 9px 12px;
 }
 
 .filter-grid {
@@ -90,13 +120,18 @@
   display: flex;
   flex: 0 0 auto;
   flex-direction: column;
-  margin: 10px 0 0;
+  margin: 4px 0 0;
   min-height: auto;
+  padding: 10px 12px;
+}
+
+.log-page-results > .panel .panel-title {
+  margin-bottom: 8px;
 }
 
 .log-page-results > .panel .table-wrap {
   height: auto;
-  max-height: min(500px, 42vh);
+  max-height: min(620px, 52vh);
   min-height: 0;
 }
 
@@ -126,6 +161,14 @@
     padding-right: 30px;
   }
 
+  .topbar-context {
+    gap: 14px;
+  }
+
+  .topbar .page-heading {
+    padding-left: 14px;
+  }
+
   .filter-grid {
     gap: 12px;
   }
@@ -142,6 +185,16 @@
 
   .log-page-controls {
     padding-top: 10px;
+  }
+
+  .topbar {
+    align-items: center;
+    flex-basis: auto;
+    min-height: 58px;
+  }
+
+  .topbar .page-heading p {
+    display: none;
   }
 
   .filters {

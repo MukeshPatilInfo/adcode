@@ -410,7 +410,11 @@ function renderCell(row, column, onTransaction, onJson) {
         View
       </button>
     );
-  if (/(?:Ts|Timestamp|updatedAt|createdAt|lastTransactionDate)$/i.test(column.key))
+  if (
+    /^(?:reqTs|resTs|timeStamp|updatedAt|createdAt|lastTransactionDate)$/i.test(
+      column.key,
+    )
+  )
     return pstDate(value);
   if (column.key === "executionTime")
     return value === undefined ? "-" : `${value}s`;
@@ -650,10 +654,6 @@ function LogPage({ page }) {
   return (
     <section className="log-page">
       <div className="log-page-controls">
-        <PageHeading
-          title={page.title}
-          subtitle="Audit transactions and integration activity."
-        />
         {cards.length > 0 && <div className="metrics">{cards}</div>}
         <Filters
           server={server}
@@ -1458,8 +1458,9 @@ function App() {
     };
   }, [auth.token]);
   if (!auth.token) return <Login onLogin={login} />;
-  const content = logPages[pageId] ? (
-    <LogPage key={pageId} page={logPages[pageId]} />
+  const logPage = logPages[pageId];
+  const content = logPage ? (
+    <LogPage key={pageId} page={logPage} />
   ) : pageId === "manage-part-types" ? (
     <ManagePartTypes />
   ) : pageId === "manage-edoc-projects" ? (
@@ -1508,7 +1509,15 @@ function App() {
       </aside>
       <main className="main-content">
         <header className="topbar">
-          <span>Admin Console</span>
+          <div className="topbar-context">
+            <span className="topbar-brand">Admin Console</span>
+            {logPage && (
+              <PageHeading
+                title={logPage.title}
+                subtitle="Audit transactions and integration activity."
+              />
+            )}
+          </div>
           <div>
             <span className="user-name">{auth.user}</span>
             <button onClick={logout}>Logout</button>
