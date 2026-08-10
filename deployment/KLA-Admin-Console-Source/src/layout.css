@@ -62,12 +62,12 @@
 
 .log-page-controls {
   flex: 0 0 auto;
-  padding: 3px 0 4px;
+  padding: 0 0 2px;
 }
 
 .metrics {
-  gap: 6px;
-  margin-bottom: 4px;
+  gap: 3px;
+  margin-bottom: 1px;
 }
 
 .metric,
@@ -78,33 +78,38 @@
 
 .metric {
   background: #ffffff;
-  border-top: 3px solid #28b8ed;
-  padding: 6px 10px;
+  border-top: 2px solid #28b8ed;
+  padding: 3px 7px;
 }
 
 .metric span {
-  font-size: 10px;
+  font-size: 8px;
 }
 
 .metric strong {
   color: #063e6a;
-  font-size: 19px;
-  margin-top: 1px;
+  font-size: 16px;
+  margin-top: 0;
 }
 
 .filters {
   background: #fbfdff;
   margin: 0;
-  padding: 9px 12px;
+  padding: 6px 10px;
+}
+
+.filters h2 {
+  margin: 0 0 5px;
 }
 
 .filter-grid {
-  gap: 8px;
+  gap: 6px;
 }
 
 .filter-grid input,
 .filter-grid select {
-  min-height: 34px;
+  min-height: 30px;
+  padding: 5px 7px;
 }
 
 .log-page-results {
@@ -120,13 +125,52 @@
   display: flex;
   flex: 0 0 auto;
   flex-direction: column;
-  margin: 4px 0 0;
+  margin: 2px 0 0;
   min-height: auto;
-  padding: 10px 12px;
+  padding: 8px 10px;
 }
 
 .log-page-results > .panel .panel-title {
-  margin-bottom: 8px;
+  margin-bottom: 5px;
+}
+
+.transaction-id {
+  max-width: 6.5ch;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.transaction-id-menu {
+  background: #fff;
+  border: 1px solid #b7d3e6;
+  border-radius: 4px;
+  box-shadow: 0 4px 14px #102a4330;
+  padding: 4px;
+  position: fixed;
+  z-index: 30;
+}
+
+.transaction-id-menu button {
+  background: none;
+  border: 0;
+  border-radius: 3px;
+  color: #073b68;
+  padding: 6px 9px;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.transaction-id-menu button:hover {
+  background: #eaf7ff;
+}
+
+.transaction-id-menu span {
+  color: #ba2525;
+  display: block;
+  font-size: 11px;
+  max-width: 180px;
+  padding: 4px 9px;
 }
 
 .log-page-results > .panel .table-wrap {

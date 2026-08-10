@@ -381,12 +381,13 @@ function Table({
 function renderCell(row, column, onTransaction, onJson) {
   const value = row[column.key];
   if (column.key === "transactionId")
-    return onTransaction ? (
-      <button className="link-button" onClick={() => onTransaction(value)}>
-        {value}
-      </button>
-    ) : (
-      value
+    return (
+      <TransactionId
+        value={value}
+        onTransaction={
+          onTransaction ? () => onTransaction(value) : undefined
+        }
+      />
     );
   if (column.key === "status" || column.key === "pdmUpdateStatus")
     return <Status value={value} />;
@@ -421,6 +422,51 @@ function renderCell(row, column, onTransaction, onJson) {
   return value === null || value === undefined || value === ""
     ? "-"
     : String(value);
+}
+
+function TransactionId({ value, onTransaction }) {
+  const [menu, setMenu] = useState(null);
+  const [copyError, setCopyError] = useState("");
+  const transactionId = String(value ?? "");
+  const label =
+    transactionId.length > 5 ? `${transactionId.slice(0, 5)}...` : transactionId;
+  const copy = async () => {
+    try {
+      await navigator.clipboard.writeText(transactionId);
+      setCopyError("");
+      setMenu(null);
+    } catch {
+      setCopyError("Unable to copy the transaction ID.");
+    }
+  };
+  return (
+    <>
+      <button
+        className="link-button transaction-id"
+        title={transactionId}
+        onClick={onTransaction}
+        onContextMenu={(event) => {
+          event.preventDefault();
+          setCopyError("");
+          setMenu({ x: event.clientX, y: event.clientY });
+        }}
+      >
+        {label}
+      </button>
+      {menu && (
+        <div
+          className="transaction-id-menu"
+          style={{ left: menu.x, top: menu.y }}
+          role="menu"
+        >
+          <button onClick={copy} role="menuitem">
+            Copy Transaction ID
+          </button>
+          {copyError && <span>{copyError}</span>}
+        </div>
+      )}
+    </>
+  );
 }
 
 function Login({ onLogin }) {
@@ -683,7 +729,6 @@ function LogPage({ page }) {
             onTransaction={page.details ? selectTransaction : undefined}
             onJson={showJson}
             onRefresh={load}
-            totalRecords={data.totalElements ?? data.total ?? data.content?.length}
           />
         )}
         {selection && (
