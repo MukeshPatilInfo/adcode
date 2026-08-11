@@ -1229,32 +1229,72 @@ function Users() {
   const [query, setQuery] = useState("");
   const [form, setForm] = useState(null);
   const [notice, setNotice] = useState("");
+  const [error, setError] = useState("");
   const load = async () => setData(await api("/users"));
   useEffect(() => {
     load();
   }, []);
-  useEffect(() => {
-if (!notice) return;
+//   useEffect(() => {
+// if (!notice) return;
 
-const timer = setTimeout(() => {
-setNotice("");
+// const timer = setTimeout(() => {
+// setNotice("");
+// }, 3000);
+
+// return () => clearTimeout(timer);
+// }, [notice]);
+
+useEffect(() => {
+if (!notice && !error) return;
+  const timer = setTimeout(() => {
+  setNotice("");
+  setError("");
 }, 3000);
+  return () => clearTimeout(timer);
+}, [notice, error]);
 
-return () => clearTimeout(timer);
-}, [notice]);
-  const save = async (event) => {
-    event.preventDefault();
-    const isNew = !form.existing;
-    const { existing, userId, role, ...user } = form;
-    await api(isNew ? "/users" : "/users", {
-      method: isNew ? "POST" : "PUT",
-      query: isNew ? undefined : { userId },
-      body: isNew ? { userId, role, ...user } : user,
-    });
-    setForm(null);
-    setNotice(`User ${isNew ? "created" : "updated"} successfully.`);
-    await load();
-  };
+  // const save = async (event) => {
+  //   event.preventDefault();
+  //   const isNew = !form.existing;
+  //   const { existing, userId, role, ...user } = form;
+  //   await api(isNew ? "/users" : "/users", {
+  //     method: isNew ? "POST" : "PUT",
+  //     query: isNew ? undefined : { userId },
+  //     body: isNew ? { userId, role, ...user } : user,
+  //   });
+  //   setForm(null);
+  //   setNotice(`User ${isNew ? "created" : "updated"} successfully.`);
+  //   await load();
+  // };
+
+const save = async (event) => {
+event.preventDefault();
+
+try {
+setError("");
+
+const isNew = !form.existing;
+const { existing, userId, role, ...user } = form;
+
+await api("/users", {
+method: isNew ? "POST" : "PUT",
+query: isNew ? undefined : { userId },
+body: isNew ? { userId, role, ...user } : user,
+});
+
+setForm(null);
+setNotice(`User ${isNew ? "created" : "updated"} successfully.`);
+await load();
+} catch (err) {
+try {
+const response = JSON.parse(err.message);
+setError(response.message || "Failed to save user.");
+} catch {
+setError(err.message || "Failed to save user.");
+}
+}
+};
+
   const remove = async (userId) => {
     if (!window.confirm(`Delete user ${userId}?`)) return;
     await api(`/users/${userId}`, { method: "DELETE" });
@@ -1289,6 +1329,7 @@ return () => clearTimeout(timer);
         }
       />
       {notice && <div className="alert success">{notice}</div>}
+      {error && <div className="alert error">{error}</div>} 
       <section className="panel inline-filters">
         <label>
           Search users
