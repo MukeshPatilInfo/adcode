@@ -1,0 +1,223 @@
+KLA PDM to ENOVIA Admin Console
+SSO / SAML 2.0 Meeting Notes
+
+PURPOSE
+=======
+This document describes the current Admin Console login code, the SSO
+configuration required for production, and the information required from the
+SSO team.
+
+IMPORTANT SCOPE
+===============
+The React frontend is SSO-ready, but it is NOT a SAML 2.0 Service Provider
+and does not parse or validate a SAMLResponse. SAML assertion validation must
+occur on a trusted backend service. The frontend starts the login redirect and
+uses the completed backend SSO result to establish an application session.
+
+CURRENT IMPLEMENTATION
+======================
+Relevant source files:
+
+  deployment\KLA-Admin-Console-Source\src\App.jsx
+  deployment\KLA-Admin-Console-Source\src\config.js
+  deployment\KLA-Admin-Console-Source\src\api.js
+  deployment\KLA-Admin-Console-Source\.env.production
+  deployment\KLA-Admin-Console-Source\conf\windows-nginx\pdmadminconsole.conf
+
+1. Normal username/password sign-in
+
+   The Sign In button sends:
+
+     POST /auth/login
+     {
+       "userId": "<entered user ID>",
+       "password": "<entered password>",
+       "ssoAuthenticated": false
+     }
+
+   The frontend expects a successful response with an application token and
+   optionally userId. It stores those as adminConsoleToken and
+   adminConsoleUser in browser local storage.
+
+2. SSO Login button
+
+   The SSO Login button appears only when:
+
+     VITE_SSO_ENABLED=true
+
+   Clicking it redirects the browser to:
+
+     VITE_SSO_LOGIN_URL
+
+   It does not submit the local password form.
+
+3. Current test callback contract
+
+   The current UI test callback returns the browser to:
+
+     /?userId=admin1
+
+   When SSO is enabled and userId is present in the URL, the frontend removes
+   the query string and posts:
+
+     POST /auth/login
+     {
+       "userId": "<SSO user ID>",
+       "password": "",
+       "ssoAuthenticated": true
+     }
+
+   This demonstrates the UI flow with mock data. The dummy local callback at
+   public\mock\sso-login.html redirects to the URL above. It is NOT a SAML
+   implementation and must not be used as production identity proof.
+
+4. Error handling
+
+   The common API client displays both JSON errors:
+
+     { "message": "..." }
+
+   and plain-text backend errors. This behavior is used by Login and Users.
+
+LOCAL TEST CONFIGURATION
+========================
+The local-only file .env.production.local enables mock fixtures and keeps the
+SSO button visible:
+
+  VITE_USE_MOCK_API=true
+  VITE_SSO_ENABLED=true
+  VITE_SSO_LOGIN_URL=/mock/sso-login.html
+
+This uses static files under public\mock and does not call the server. It is
+only for UI demonstrations.
+
+PRODUCTION CONFIGURATION
+========================
+Set production values before building:
+
+  VITE_USE_MOCK_API=false
+  VITE_API_HOST=/api
+  VITE_SSO_ENABLED=true
+  VITE_SSO_LOGIN_URL=/api/auth/sso/login
+
+The exact login URL must be confirmed with the backend and SSO teams. This
+example assumes the backend has an SSO-start endpoint and Nginx proxies
+browser /api/* calls to that backend.
+
+Vite VITE_* values are embedded at build time. Rebuild and redeploy dist after
+changing any SSO configuration.
+
+The supplied Windows Nginx configuration serves the SPA over HTTPS and proxies
+/api/* to the backend. It preserves Authorization and standard forwarded
+headers. Configure its TLS certificate paths and proxy_pass address on the
+server.
+
+RECOMMENDED PRODUCTION SAML FLOW
+================================
+1. User clicks SSO Login in the Admin Console.
+2. Browser navigates to a backend endpoint, for example:
+
+     https://<admin-console-host>/api/auth/sso/login
+
+3. Backend creates a SAML AuthnRequest and redirects the browser to the IdP.
+4. User authenticates with the IdP.
+5. IdP POSTs the SAMLResponse to the backend Assertion Consumer Service (ACS),
+   not to the React application.
+6. Backend validates the response and assertion, identifies the user, and
+   verifies the user is authorized for the Admin Console.
+7. Backend creates the Admin Console application session/token.
+8. Backend redirects the browser to the SPA using one of these safe patterns:
+
+   Preferred: Set a Secure, HttpOnly, SameSite session cookie and redirect to
+   the application root.
+
+   Alternative: Redirect with a one-time, short-lived authorization code. The
+   frontend exchanges the code with the backend over HTTPS for its application
+   token.
+
+Do not treat a browser-supplied userId or ssoAuthenticated=true flag as proof
+of SSO authentication in production. The backend must establish that state
+only after validating a SAML assertion or a trusted server-side session.
+
+CURRENT BACKEND CONTRACT TO CONFIRM
+===================================
+The frontend currently knows this application login shape:
+
+  POST /auth/login
+  {
+    "userId": "<user ID>",
+    "password": "",
+    "ssoAuthenticated": true
+  }
+
+The backend team must confirm whether this endpoint remains after SAML
+validation. A production-safe design is for the backend SAML callback to
+issue the Admin Console session/token itself, rather than accepting an
+unverified browser assertion.
+
+INFORMATION REQUIRED FROM THE SSO TEAM
+======================================
+1. IdP metadata
+   - Metadata XML or metadata URL.
+   - IdP entity ID / issuer.
+   - Single Sign-On service URL.
+   - Supported binding: HTTP-Redirect, HTTP-POST, or both.
+   - IdP signing certificate(s), certificate rotation plan, and fingerprint.
+
+2. Service Provider registration
+   - Confirm that the Admin Console backend is the SAML Service Provider.
+   - SP entity ID / audience URI to register.
+   - ACS URL to register, for example:
+
+       https://<admin-console-host>/api/auth/sso/acs
+
+   - Required ACS binding and whether the response must be signed.
+   - Whether AuthnRequests must be signed, and the SP signing certificate or
+     public-key registration process.
+
+3. Identity and authorization claims
+   - Exact claim or NameID value to use as application userId.
+   - NameID format: email, employee ID, UPN, or another immutable ID.
+   - First name, last name, email, and group/role claim names if needed.
+   - Group-to-Admin-Console-role mapping and authorization policy.
+   - Confirmation that the SSO identifier matches the existing Users table,
+     or a defined mapping/provisioning process.
+
+4. Session and logout requirements
+   - IdP session lifetime, reauthentication requirements, and idle timeout.
+   - Whether Single Logout (SLO) is required now or later.
+   - IdP logout endpoint and binding if SLO is required.
+   - Expected behavior when an application session expires but an IdP session
+     remains active.
+
+5. Security and operations
+   - Required signature validation, assertion encryption, and algorithm policy.
+   - Audience, recipient, destination, and clock-skew requirements.
+   - Replay protection and InResponseTo requirements.
+   - Test and production tenants, test users, and rollout process.
+   - Firewall, DNS, and TLS requirements for the ACS URL.
+   - Certificate ownership, expiry monitoring, and rotation contacts.
+
+DECISIONS TO LEAVE THE MEETING WITH
+===================================
+- Final production hostname and HTTPS URL.
+- Backend SSO-start endpoint and ACS endpoint paths.
+- IdP metadata and certificate(s).
+- Exact userId claim and group/role claims.
+- Whether the backend issues a cookie session or one-time code/token.
+- Test tenant details and an end-to-end test account.
+- Logout/SLO scope for the first release.
+- Owners for IdP configuration, backend SAML validation, frontend config,
+  Nginx/TLS, and production verification.
+
+MEETING DEMONSTRATION
+=====================
+1. Open the local test app at http://localhost:5173/.
+2. Show that SSO Login is configuration-controlled by
+   VITE_SSO_ENABLED=true.
+3. Click SSO Login to demonstrate the local mock redirect.
+4. Explain that the mock callback supplies only a test user ID.
+5. Show the production configuration values and recommended backend-led SAML
+   flow above.
+6. Emphasize that real SAML assertions must go to the backend ACS endpoint,
+   where they are validated before an Admin Console session is created.
