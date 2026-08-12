@@ -3,8 +3,8 @@ import { api, getJsonPayload } from "./api";
 import { config } from "./config";
 import "./layout.css";
 import "./fullscreen.css";
-import loginBackground from "../LogoImages/avatars-92U9qxyH6xyFnXEG-BgKGTg-t500x500.jpg";
-import klaLogo from "../LogoImages/KLA_Corporation-Logo.wine.png";
+import loginBackground from "../LogoImages/KLA_Corporation-Logo_Backround.jpg";
+import klaLogo from "../LogoImages/KLA_Corporation-Logo.png";
 
 const dateInput = (date) => date.toISOString().slice(0, 10);
 const pstDate = (value) =>
