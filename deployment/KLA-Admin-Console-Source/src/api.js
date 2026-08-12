@@ -23,6 +23,20 @@ const fixtureFor = (path) => {
   return fixtures[path];
 };
 
+const errorMessage = (text, status) => {
+  if (!text) return `Request failed (${status})`;
+
+  try {
+    const payload = JSON.parse(text);
+    if (typeof payload === "string") return payload;
+    if (typeof payload?.message === "string") return payload.message;
+  } catch {
+    // Plain-text error responses do not need JSON parsing.
+  }
+
+  return text;
+};
+
 export async function api(path, options = {}) {
   const method = options.method || "GET";
   if (config.useMockApi) {
@@ -51,40 +65,21 @@ export async function api(path, options = {}) {
     },
     body: options.body ? (options.body instanceof FormData ? options.body : JSON.stringify(options.body)) : undefined,
   });
-  // if (!response.ok) {
-  //   const error = await response.json().catch(() => ({}));
-  //   throw new Error(error.message || `Request failed (${response.status})`);
-  // }
-  // return response.status === 204 ? {} : response.json();
 
   if (!response.ok) {
-const errorText = await response.text();
+    throw new Error(errorMessage(await response.text(), response.status));
+  }
 
-try {
-const errorJson = JSON.parse(errorText);
-throw new Error(
-errorJson.message || `Request failed (${response.status})`
-);
-} catch {
-throw new Error(errorText || `Request failed (${response.status})`);
-}
-}
+  if (response.status === 204) return {};
 
-if (response.status === 204) {
-return {};
-}
+  const responseText = await response.text();
+  if (!responseText) return {};
 
-const responseText = await response.text();
-
-if (!responseText) {
-return {};
-}
-
-try {
-return JSON.parse(responseText);
-} catch {
-return responseText;
-}
+  try {
+    return JSON.parse(responseText);
+  } catch {
+    return responseText;
+  }
 }
 
 export const getJsonPayload = (usecase, transactionId, type) =>

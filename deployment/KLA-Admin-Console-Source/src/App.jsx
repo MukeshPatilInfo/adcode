@@ -391,6 +391,7 @@ function renderCell(row, column, onTransaction, onJson) {
     ) : (
       String(value)
     );
+  if (column.label === "Error") return <ErrorValue value={value} />;
   if (column.key === "status" || column.key === "pdmUpdateStatus")
     return <Status value={value} />;
   if (column.key === "request" || column.key === "response")
@@ -414,7 +415,7 @@ function renderCell(row, column, onTransaction, onJson) {
       </button>
     );
   if (
-    /^(?:reqTs|resTs|timeStamp|updatedAt|createdAt|lastTransactionDate)$/i.test(
+    /^(?:reqTs|resTs|timeStamp|enoviaUpdateTimestamp|pdmUpdateTimestamp|updatedAt|createdAt|lastTransactionDate)$/i.test(
       column.key,
     )
   )
@@ -427,11 +428,45 @@ function renderCell(row, column, onTransaction, onJson) {
 }
 
 function TransactionId({ value, onTransaction }) {
+  return (
+    <TruncatedCopyValue
+      value={value}
+      maxLength={5}
+      suffix="..."
+      className="transaction-id"
+      copyLabel="Copy Transaction ID"
+      onClick={onTransaction}
+    />
+  );
+}
+
+function ErrorValue({ value }) {
+  return (
+    <TruncatedCopyValue
+      value={value}
+      maxLength={20}
+      suffix="...."
+      className="error-value"
+      copyLabel="Copy Error"
+    />
+  );
+}
+
+function TruncatedCopyValue({
+  value,
+  maxLength,
+  suffix,
+  className,
+  copyLabel,
+  onClick,
+}) {
   const [menu, setMenu] = useState(null);
   const [copyError, setCopyError] = useState("");
   const transactionId = String(value ?? "");
   const label =
-    transactionId.length > 5 ? `${transactionId.slice(0, 5)}...` : transactionId;
+    transactionId.length > maxLength
+      ? `${transactionId.slice(0, maxLength)}${suffix}`
+      : transactionId;
   const copy = async () => {
     try {
       await navigator.clipboard.writeText(transactionId);
@@ -444,16 +479,16 @@ function TransactionId({ value, onTransaction }) {
   return (
     <>
       <button
-        className="link-button transaction-id"
+        className={`truncated-copy-value ${className}`}
         title={transactionId}
-        onClick={onTransaction}
+        onClick={onClick}
         onContextMenu={(event) => {
           event.preventDefault();
           setCopyError("");
           setMenu({ x: event.clientX, y: event.clientY });
         }}
       >
-        {label}
+        {transactionId ? label : "-"}
       </button>
       {menu && (
         <div
@@ -461,9 +496,7 @@ function TransactionId({ value, onTransaction }) {
           style={{ left: menu.x, top: menu.y }}
           role="menu"
         >
-          <button onClick={copy} role="menuitem">
-            Copy Transaction ID
-          </button>
+          <button onClick={copy} role="menuitem">{copyLabel}</button>
           {copyError && <span>{copyError}</span>}
         </div>
       )}
@@ -609,6 +642,7 @@ function LogPage({ page }) {
     cadPrimary: "",
   });
   const [selection, setSelection] = useState(null);
+  const [returnToTransactions, setReturnToTransactions] = useState(false);
   const [modal, setModal] = useState(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
@@ -645,6 +679,17 @@ function LogPage({ page }) {
     details?.scrollIntoView({ behavior: "smooth", block: "start" });
     details?.focus({ preventScroll: true });
   }, [selection]);
+  useEffect(() => {
+    if (!returnToTransactions) return;
+
+    const frame = requestAnimationFrame(() => {
+      document
+        .getElementById(`table-${page.title}`)
+        ?.scrollIntoView({ behavior: "smooth", block: "start" });
+      setReturnToTransactions(false);
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [page.title, returnToTransactions]);
   const rows = useMemo(
     () =>
       (data.content || []).filter(
@@ -716,6 +761,7 @@ function LogPage({ page }) {
             setLocalStatus("");
           }}
           includePartialStatus={page.title === "Create Part"}
+          includePendingStatus={page.title === "Backflow"}
         />
         {error && <div className="alert error">{error}</div>}
       </div>
@@ -750,6 +796,17 @@ function LogPage({ page }) {
           </pre>
         </Modal>
       )}
+      {selection && (
+        <button
+          className="return-to-transactions"
+          onClick={() => {
+            setSelection(null);
+            setReturnToTransactions(true);
+          }}
+        >
+          ↑ Back to Transactions
+        </button>
+      )}
     </section>
   );
 }
@@ -775,7 +832,9 @@ function Filters({
   onReset,
   includeStatus = true,
   includePartialStatus = false,
+  includePendingStatus = false,
 }) {
+  const inProgressStatus = includePendingStatus ? "PENDING" : "RUNNING";
   return (
     <section className="panel filters">
       <div>
@@ -814,7 +873,7 @@ function Filters({
                 <option>SUCCESS</option>
                 {includePartialStatus && <option>PARTIAL</option>}
                 <option value="FAILED">FAILED</option>
-                <option>RUNNING</option>
+                <option>{inProgressStatus}</option>
               </select>
             </label>
           )}
@@ -857,7 +916,7 @@ function Filters({
               <option>SUCCESS</option>
               {includePartialStatus && <option>PARTIAL</option>}
               <option value="FAILED">FAILED</option>
-              <option>RUNNING</option>
+              <option>{inProgressStatus}</option>
             </select>
           </label>
         )}
@@ -1007,7 +1066,7 @@ function ManagePartTypes() {
   const expandAll = () =>
     setExpanded(Object.fromEntries(expandableIds.map((objectId) => [objectId, true])));
   return (
-    <>
+    <section className="management-page">
       <PageHeading
         title="Manage Part Types"
         subtitle={`Total Part Types: ${(response.totalCad || 0) + (response.totalNonCad || 0)} | CAD: ${response.totalCad || 0} | Non-CAD: ${response.totalNonCad || 0}`}actions={
@@ -1128,6 +1187,7 @@ function ManagePartTypes() {
             </tbody>
           </table>
         </div>
+        <div className="table-footer">Total records: {sortedRows.length}</div>
       </section>
       {modal && (
         <Modal title="Update CAD / Non-CAD" onClose={() => setModal(false)}>
@@ -1140,7 +1200,7 @@ function ManagePartTypes() {
           </div>
         </Modal>
       )}
-    </>
+    </section>
   );
 }
 function ManageEdocProjects() {
@@ -1230,6 +1290,7 @@ function Users() {
   const [form, setForm] = useState(null);
   const [notice, setNotice] = useState("");
   const [error, setError] = useState("");
+  const [sort, setSort] = useState({ key: "", direction: "asc" });
   const load = async () => setData(await api("/users"));
   useEffect(() => {
     load();
@@ -1286,26 +1347,38 @@ setForm(null);
 setNotice(`User ${isNew ? "created" : "updated"} successfully.`);
 await load();
 } catch (err) {
-try {
-const response = JSON.parse(err.message);
-setError(response.message || "Failed to save user.");
-} catch {
-setError(err.message || "Failed to save user.");
-}
+setError(err instanceof Error ? err.message : "Failed to save user.");
 }
 };
 
   const remove = async (userId) => {
     if (!window.confirm(`Delete user ${userId}?`)) return;
-    await api(`/users/${userId}`, { method: "DELETE" });
-    setNotice("User deleted successfully.");
-    await load();
+    try {
+      setError("");
+      await api(`/users/${userId}`, { method: "DELETE" });
+      setNotice("User deleted successfully.");
+      await load();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to delete user.");
+    }
   };
   const rows = data.content.filter((item) =>
     JSON.stringify(item).toLowerCase().includes(query.toLowerCase()),
   );
+  const userColumns = columns([
+    ["User ID", "userId"],
+    ["First Name", "firstName"],
+    ["Last Name", "lastName"],
+    ["Email", "email"],
+    ["Role", "role"],
+    ["Active", "isActive"],
+    ["Created At", "createdAt"],
+    ["Updated By", "updatedBy"],
+    ["Updated At", "updatedAt"],
+  ]);
+  const sortedRows = useMemo(() => sortRows(rows, sort), [rows, sort]);
   return (
-    <>
+    <section className="management-page">
       <PageHeading
         title="Users"
         subtitle="Manage authorized Admin Console users."
@@ -1340,33 +1413,40 @@ setError(err.message || "Failed to save user.");
         </label>
         <button onClick={() => setQuery("")}>Reset</button>
       </section>
-      <section className="panel">
+      <section className="panel" id="users">
         <div className="panel-title">
           <h2>Users</h2>
-          <button onClick={load}>Refresh</button>
+          <div className="panel-actions">
+            <button onClick={load}>Refresh</button>
+            <button
+              className="icon-button"
+              title="Expand table"
+              onClick={() => document.getElementById("users")?.requestFullscreen?.()}
+            >
+              ⛶
+            </button>
+          </div>
         </div>
         <div className="table-wrap">
           <table>
             <thead>
               <tr>
-                {[
-                  "User ID",
-                  "First Name",
-                  "Last Name",
-                  "Email",
-                  "Role",
-                  "Active",
-                  "Created At",
-                  "Updated By",
-                  "Updated At",
-                  "Actions",
-                ].map((header) => (
-                  <th key={header}>{header}</th>
+                {userColumns.map((column) => (
+                  <SortableHeader
+                    key={column.key}
+                    column={column}
+                    sortable
+                    sort={sort}
+                    onSort={(key) =>
+                      setSort((current) => nextSort(current, key))
+                    }
+                  />
                 ))}
+                <th>Actions</th>
               </tr>
             </thead>
             <tbody>
-              {rows.map((user) => (
+              {sortedRows.map((user) => (
                 <tr key={user.userId}>
                   <td>{user.userId}</td>
                   <td>{user.firstName}</td>
@@ -1398,6 +1478,7 @@ setError(err.message || "Failed to save user.");
             </tbody>
           </table>
         </div>
+        <div className="table-footer">Total records: {rows.length}</div>
       </section>
       {form && (
         <Modal
@@ -1474,7 +1555,7 @@ setError(err.message || "Failed to save user.");
           </form>
         </Modal>
       )}
-    </>
+    </section>
   );
 }
 

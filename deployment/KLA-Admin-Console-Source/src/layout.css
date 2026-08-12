@@ -149,11 +149,24 @@
   margin-bottom: 5px;
 }
 
+.truncated-copy-value {
+  background: none;
+  border: 0;
+  padding: 0;
+  text-align: left;
+}
+
 .transaction-id {
+  color: #007cba;
   max-width: 6.5ch;
   overflow: hidden;
+  text-decoration: underline;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.error-value {
+  max-width: 24ch;
 }
 
 .transaction-id-menu {
@@ -257,6 +270,25 @@
   text-align: right;
 }
 
+.return-to-transactions {
+  background: #007cba;
+  border: 1px solid #007cba;
+  border-radius: 5px;
+  bottom: 22px;
+  box-shadow: 0 3px 12px #102a4330;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 9px 13px;
+  position: fixed;
+  right: 22px;
+  z-index: 10;
+}
+
+.return-to-transactions:hover {
+  background: #00649a;
+}
+
 @media (min-width: 1440px) {
   .main-content {
     padding-left: 30px;
@@ -304,6 +336,11 @@
 
   .topbar .page-heading p {
     display: none;
+  }
+
+  .return-to-transactions {
+    bottom: 14px;
+    right: 14px;
   }
 
   .filters {
