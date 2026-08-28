@@ -15,6 +15,28 @@ const pstDate = (value) =>
         timeStyle: "medium",
       }).format(new Date(value))
     : "-";
+
+const getSearchableText = (row) =>
+  Object.entries(row)
+    .map(([key, value]) => {
+      if (
+        /^(?:reqTs|resTs|timeStamp|enoviaUpdateTimestamp|pdmUpdateTimestamp|updatedAt|createdAt|lastTransactionDate)$/i.test(
+          key,
+        )
+      ) {
+        return pstDate(value);
+      }
+
+      if (key === "executionTime") {
+        return value === null || value === undefined
+          ? ""
+          : `${value} Sec`;
+      }
+
+      return value ?? "";
+    })
+    .join(" ")
+    .toLowerCase();
 //const toApiDate = (value) => value ? new Intl.DateTimeFormat("en-GB", { timeZone: "America/Los_Angeles" }).format(new Date(`${value}T12:00:00`)).replace(/\//g, "/") : "";
 
 const toApiDate = (value) => value || "";
@@ -53,7 +75,7 @@ const logPages = {
     endpoint: "/audit/create-part-logs",
     jsonUsecase: "create-part-logs",
     summary: [
-      "Total Parts Created",
+      "Total Transactions",
       "Total Success",
       "Total Partial",
       "Total Failed",
@@ -67,7 +89,7 @@ const logPages = {
       ["Action", "edoc"],
       ["No. of Parts", "totalParts"],
       ["Status", "status"],
-      ["Error", "message"],
+      ["Message", "message"],
       ["Request JSON", "request"],
       ["Response JSON", "response"],
       ["Request Timestamp", "reqTs"],
@@ -79,7 +101,7 @@ const logPages = {
     title: "Dashroll",
     endpoint: "/audit/dashroll-logs",
     jsonUsecase: "dashroll-logs",
-    summary: ["Total Dashroll Created", "Total Success", "Total Failed"],
+    summary: ["Total Transactions", "Total Success", "Total Failed"],
     details: "component",
     columns: columns([
       ["Transaction ID", "transactionId"],
@@ -91,7 +113,7 @@ const logPages = {
       ["Next Dash", "nextDash"],
       ["Description", "description"],
       ["Status", "status"],
-      ["Error", "msg"],
+      ["Message", "msg"],
       ["Request JSON", "request"],
       ["Response JSON", "response"],
       ["Request Timestamp", "reqTs"],
@@ -103,7 +125,7 @@ const logPages = {
     title: "Upload to Enovia",
     endpoint: "/audit/upload-to-enovia-logs",
     jsonUsecase: "upload-to-enovia-logs",
-    summary: ["Total Upload", "Total Success", "Total Failed"],
+    summary: ["Total Transactions", "Total Success", "Total Failed"],
     details: "metadata",
     columns: columns([
       ["Transaction ID", "transactionId"],
@@ -148,7 +170,7 @@ const logPages = {
       ["CAD Primary", "cadPrimary"],
       ["No. of Parts", "searchcount"],
       ["Status", "status"],
-      ["Error", "message"],
+      ["Message", "message"],
       ["Request JSON", "request"],
       ["Request Timestamp", "reqTs"],
       ["Response Timestamp", "resTs"],
@@ -167,7 +189,7 @@ const logPages = {
       ["Part Number", "partNumber"],
       ["Part Revision", "partRev"],
       ["Status", "status"],
-      ["Error", "message"],
+      ["Message", "message"],
       ["Request JSON", "request"],
       ["Response JSON", "response"],
       ["Request Timestamp", "reqTs"],
@@ -185,7 +207,7 @@ const logPages = {
       ["Requester", "requester"],
       ["CAD Primary", "cadPrimary"],
       ["Status", "status"],
-      ["Error", "message"],
+      ["Message", "message"],
       ["Request JSON", "request"],
       ["CO Count", "fetchedCo"],
       ["Request Timestamp", "reqTs"],
@@ -203,7 +225,7 @@ const logPages = {
       ["CAD Primary", "cadPrimary"],
       ["Project Count", "successCount"],
       ["Status", "status"],
-      ["Error", "message"],
+      ["Message", "message"],
       ["Request Timestamp", "reqTs"],
       ["Response Timestamp", "resTs"],
       ["Enovia Time", "executionTime"],
@@ -220,7 +242,7 @@ const logPages = {
       ["From Modified Date", "lastTransactionDate"],
       ["Manufacturer Count", "successCount"],
       ["Status", "status"],
-      ["Error", "message"],
+      ["Message", "message"],
       ["Request Timestamp", "reqTs"],
       ["Response Timestamp", "resTs"],
       ["Enovia Time", "executionTime"],
@@ -236,7 +258,7 @@ const logPages = {
       ["CAD Primary", "cadPrimary"],
       ["EDOC Project Count", "fetchedEdocProject"],
       ["Status", "status"],
-      ["Error", "message"],
+      ["Message", "message"],
       ["Request Timestamp", "reqTs"],
       ["Response Timestamp", "resTs"],
       ["Enovia Time", "executionTime"],
@@ -252,7 +274,7 @@ const logPages = {
       ["CAD Primary", "cadPrimary"],
       ["Part Type Count", "fetchedPartTypes"],
       ["Status", "status"],
-      ["Error", "message"],
+      ["Message", "message"],
       ["Request Timestamp", "reqTs"],
       ["Response Timestamp", "resTs"],
       ["Enovia Time", "executionTime"],
@@ -313,8 +335,39 @@ function Table({
   totalRecords,
 }) {
   const [sort, setSort] = useState({ key: "", direction: "asc" });
+  const [isFullscreen, setIsFullscreen] = useState(false);
   const sortedRows = useMemo(() => sortRows(rows, sort), [rows, sort]);
-  const fullScreen = () => document.getElementById(id)?.requestFullscreen?.();
+  useEffect(() => {
+  const handleFullscreenChange = () => {
+    setIsFullscreen(
+      document.fullscreenElement === document.getElementById(id)
+    );
+  };
+
+  document.addEventListener(
+    "fullscreenchange",
+    handleFullscreenChange
+  );
+
+  return () => {
+    document.removeEventListener(
+      "fullscreenchange",
+      handleFullscreenChange
+    );
+  };
+}, [id]);
+  // const fullScreen = () => document.getElementById(id)?.requestFullscreen?.();
+  const fullScreen = async () => {
+  const element = document.getElementById(id);
+
+  if (!element) return;
+
+  if (document.fullscreenElement === element) {
+    await document.exitFullscreen();
+  } else {
+    await element.requestFullscreen();
+  }
+};
   return (
     <section className="panel" id={id}>
       <div className="panel-title">
@@ -325,12 +378,19 @@ function Table({
               Refresh
             </button>
           )}
-          <button
+          {/* <button
             className="icon-button"
             title="Expand table"
             onClick={fullScreen}
           >
             ⛶
+          </button> */}
+          <button
+            className="icon-button"
+            title={isFullscreen ? "Exit fullscreen" : "Expand table"}
+            onClick={fullScreen}
+          >
+            {isFullscreen ? "🗗" : "⛶"}
           </button>
         </div>
       </div>
@@ -391,7 +451,12 @@ function renderCell(row, column, onTransaction, onJson) {
     ) : (
       String(value)
     );
-  if (column.label === "Error") return <ErrorValue value={value} />;
+  //if (column.label === "Message") return <ErrorValue value={value} />;
+  if (column.label === "Message")
+  return value === null || value === undefined || value === ""
+    ? "-"
+    : <ErrorValue value={value} />;
+
   if (column.key === "status" || column.key === "pdmUpdateStatus")
     return <Status value={value} />;
   if (column.key === "request" || column.key === "response")
@@ -421,7 +486,7 @@ function renderCell(row, column, onTransaction, onJson) {
   )
     return pstDate(value);
   if (column.key === "executionTime")
-    return value === undefined ? "-" : `${value}s`;
+    return value === null ? "-" : `${value} Sec`;
   return value === null || value === undefined || value === ""
     ? "-"
     : String(value);
@@ -444,10 +509,10 @@ function ErrorValue({ value }) {
   return (
     <TruncatedCopyValue
       value={value}
-      maxLength={20}
+      maxLength={40}
       suffix="...."
       className="error-value"
-      copyLabel="Copy Error"
+      copyLabel="Copy Message"
     />
   );
 }
@@ -531,30 +596,78 @@ function Login({ onLogin }) {
     }
     window.location.assign(config.ssoLoginUrl);
   };
+  // useEffect(() => {
+  //   if (!config.ssoEnabled) return;
+
+  //   const userId = new URLSearchParams(window.location.search).get("userId");
+  //   if (!userId) return;
+
+  //   window.history.replaceState({}, "", window.location.pathname);
+  //   const completeSsoLogin = async () => {
+  //     setBusy(true);
+  //     setError("");
+  //     try {
+  //       const result = await api("/auth/login", {
+  //         method: "POST",
+  //         body: { userId, password: "", ssoAuthenticated: true },
+  //       });
+  //       onLogin(result.token, result.userId || userId);
+  //     } catch (reason) {
+  //       setError(reason.message);
+  //     } finally {
+  //       setBusy(false);
+  //     }
+  //   };
+  //   completeSsoLogin();
+  // }, [onLogin]);
   useEffect(() => {
-    if (!config.ssoEnabled) return;
 
-    const userId = new URLSearchParams(window.location.search).get("userId");
-    if (!userId) return;
+    if (!config.ssoEnabled) {
+        return;
+    }
 
-    window.history.replaceState({}, "", window.location.pathname);
-    const completeSsoLogin = async () => {
-      setBusy(true);
-      setError("");
-      try {
-        const result = await api("/auth/login", {
-          method: "POST",
-          body: { userId, password: "", ssoAuthenticated: true },
-        });
-        onLogin(result.token, result.userId || userId);
-      } catch (reason) {
-        setError(reason.message);
-      } finally {
-        setBusy(false);
-      }
-    };
-    completeSsoLogin();
-  }, [onLogin]);
+    const params =
+        new URLSearchParams(window.location.search);
+
+    const token =
+        params.get("token");
+
+    const userId =
+        params.get("userId");
+
+    const error =
+        params.get("error");
+
+    if (error) {
+
+        // setError(error);
+        setError(decodeURIComponent(error));
+
+        window.history.replaceState(
+            {},
+            "",
+            window.location.pathname
+        );
+
+        return;
+    }
+
+    if (!token) {
+        return;
+    }
+
+    onLogin(
+        token,
+        userId || "SSO User"
+    );
+
+    window.history.replaceState(
+        {},
+        "",
+        window.location.pathname
+    );
+
+}, [onLogin]);
   return (
     <main
       className="login-page"
@@ -697,7 +810,8 @@ function LogPage({ page }) {
           (!localStatus ||
             displayStatus(row.status).toUpperCase() === localStatus ||
             displayStatus(row.pdmUpdateStatus).toUpperCase() === localStatus) &&
-          JSON.stringify(row).toLowerCase().includes(query.toLowerCase()),
+          //JSON.stringify(row).toLowerCase().includes(query.toLowerCase()),
+          getSearchableText(row).includes(query.toLowerCase()),
       ),
     [data, query, localStatus],
   );
@@ -736,14 +850,23 @@ function LogPage({ page }) {
       setError(reason.message);
     }
   };
+
+const metricValues = page.title === "Create Part" ? [data.total, data.success, data.partial, data.fail] : [data.total, data.success, data.fail];
+  // const cards = (page.summary || []).map((label, index) => (
+  //   <div className="metric" key={label}>
+  //     <span>{label}</span>
+  //     <strong>
+  //       {[data.total, data.success, data.partial, data.fail][index] || 0}
+  //     </strong>
+  //   </div>
+  // ));
+
   const cards = (page.summary || []).map((label, index) => (
-    <div className="metric" key={label}>
-      <span>{label}</span>
-      <strong>
-        {[data.total, data.success, data.partial, data.fail][index] || 0}
-      </strong>
-    </div>
-  ));
+<div className="metric" key={label}>
+<span>{label}</span>
+<strong>{metricValues[index] ?? 0}</strong>
+</div>
+));
   return (
     <section className="log-page">
       <div className="log-page-controls">
@@ -840,26 +963,48 @@ function Filters({
       <div>
         <h2>Filters</h2>
         <div className="filter-grid">
-          <label>
+          {/* <label>
             From date
             <input
               type="date"
               value={server.from}
+              max={server.to || undefined}
               onChange={(event) =>
                 setServer({ ...server, from: event.target.value })
               }
             />
-          </label>
-          <label>
+          </label> */}
+          <input
+            type="date"
+            required
+            value={server.from}
+            max={server.to || undefined}
+            onChange={(event) => {
+              if (!event.target.value) return;
+              setServer({ ...server, from: event.target.value });
+            }}
+          />
+          {/* <label>
             To date
             <input
               type="date"
               value={server.to}
+              min={server.from || undefined}
               onChange={(event) =>
                 setServer({ ...server, to: event.target.value })
               }
             />
-          </label>
+          </label> */}
+          <input
+            type="date"
+            required
+            value={server.to}
+            min={server.from || undefined}
+            onChange={(event) => {
+              if (!event.target.value) return;
+              setServer({ ...server, to: event.target.value });
+            }}
+          />
           {includeStatus && (
             <label>
               Server status
@@ -891,9 +1036,45 @@ function Filters({
               ))}
             </select>
           </label>
-          <button className="primary" onClick={onSearch}>
+          {/* <button className="primary" onClick={onSearch}>
             Search
-          </button>
+          </button> */}
+          {/* <button
+          className="primary"
+          onClick={() => {
+            if (
+              server.from &&
+              server.to &&
+              new Date(server.from) > new Date(server.to)
+            ) {
+              alert("From Date cannot be greater than To Date.");
+              return;
+            }
+
+            onSearch();
+          }}
+        >
+          Search
+        </button> */}
+        <button
+          className="primary"
+          onClick={() => {
+
+            if (!server.from || !server.to) {
+              alert("Please select both From Date and To Date.");
+              return;
+            }
+
+            if (new Date(server.from) > new Date(server.to)) {
+              alert("From Date cannot be greater than To Date.");
+              return;
+            }
+
+            onSearch();
+          }}
+        >
+          Search
+        </button>
         </div>
       </div>
       <div className="filter-grid local">
@@ -951,7 +1132,7 @@ function Details({ page, selection }) {
           ["Project", "project"],
           ["MFR", "mfr"],
           ["Status", "status"],
-          ["Error", "msg"],
+          ["Message", "msg"],
         ]);
   const logColumns = columns([
     ["Transaction ID", "transactionId"],
@@ -1000,6 +1181,38 @@ function ManagePartTypes() {
   const [expanded, setExpanded] = useState({});
   const [modal, setModal] = useState(false);
   const [notice, setNotice] = useState("");
+  const [isFullscreen, setIsFullscreen] = useState(false);
+
+useEffect(() => {
+  const handleFullscreenChange = () => {
+    setIsFullscreen(
+      document.fullscreenElement ===
+      document.getElementById("manage-part-types")
+    );
+  };
+
+  document.addEventListener(
+    "fullscreenchange",
+    handleFullscreenChange
+  );
+
+  return () =>
+    document.removeEventListener(
+      "fullscreenchange",
+      handleFullscreenChange
+    );
+}, []);
+
+  useEffect(() => {
+  if (!notice) return;
+
+  const timer = setTimeout(() => {
+    setNotice("");
+  }, 3000);
+
+  return () => clearTimeout(timer);
+}, [notice]);
+
   const [sort, setSort] = useState({ key: "", direction: "asc" });
   const load = async () => setResponse(await api("/part-types"));
   useEffect(() => {
@@ -1023,19 +1236,43 @@ function ManagePartTypes() {
     setSelected((items) =>
       items.includes(id) ? items.filter((item) => item !== id) : [...items, id],
     );
+  // const update = async (isCad) => {
+  //   const payload = selected.map((objectId) => ({ objectId, isCad }));
+  //   const result = await api("/part-types/bulk-update", {
+  //     method: "PUT",
+  //     body: payload,
+  //   });
+  //   setNotice(
+  //     `${result.updatedCount || payload.length} part type(s) updated successfully.`,
+  //   );
+  //   setSelected([]);
+  //   setModal(false);
+  //   await load();
+  // };
   const update = async (isCad) => {
-    const payload = selected.map((objectId) => ({ objectId, isCad }));
+  try {
+    const payload = selected.map((objectId) => ({
+      objectId,
+      isCad,
+    }));
+
     const result = await api("/part-types/bulk-update", {
       method: "PUT",
       body: payload,
     });
+
     setNotice(
-      `${result.updatedCount || payload.length} part type(s) updated successfully.`,
+      `${result.updatedCount || payload.length} part type(s) updated successfully.`
     );
+
     setSelected([]);
-    setModal(false);
+
     await load();
-  };
+  } catch (err) {
+    console.error(err);
+  }
+};
+
   const tableColumns = columns([
     ["Select", "select"],
     ["Object ID", "objectId"],
@@ -1101,7 +1338,7 @@ function ManagePartTypes() {
             <button onClick={() => setExpanded({})} disabled={!expandableIds.length}>
               Collapse all
             </button>
-            <button
+            {/* <button
               className="icon-button"
               onClick={() =>
                 document
@@ -1110,7 +1347,22 @@ function ManagePartTypes() {
               }
             >
               ⛶
-            </button>
+            </button> */}
+            <button
+              className="icon-button"
+              onClick={async () => {
+                const element =
+                  document.getElementById("manage-part-types");
+
+                if (document.fullscreenElement === element) {
+                  await document.exitFullscreen();
+                } else {
+                  await element.requestFullscreen();
+                }
+              }}
+            >
+              {isFullscreen ? "🗗" : "⛶"}
+</button>
           </div>
         </div>
         <div className="table-wrap">
@@ -1189,7 +1441,7 @@ function ManagePartTypes() {
         </div>
         <div className="table-footer">Total records: {sortedRows.length}</div>
       </section>
-      {modal && (
+      {/* {modal && (
         <Modal title="Update CAD / Non-CAD" onClose={() => setModal(false)}>
           <p>Update {selected.length} selected part type(s).</p>
           <div className="dialog-actions">
@@ -1199,35 +1451,138 @@ function ManagePartTypes() {
             <button onClick={() => update(false)}>Set Non-CAD</button>
           </div>
         </Modal>
-      )}
+      )} */}
+      {modal && (
+  <Modal
+    title="Update CAD / Non-CAD"
+    onClose={() => {
+      console.log("Closing Modal");
+      setModal(false);
+    }}
+  >
+    <p>Update {selected.length} selected part type(s).</p>
+
+    <div className="dialog-actions">
+      <button
+        className="primary"
+        onClick={async () => {
+          await update(true);
+          setModal(false);
+        }}
+      >
+        Set CAD
+      </button>
+
+      <button
+        onClick={async () => {
+          await update(false);
+          setModal(false);
+        }}
+      >
+        Set Non-CAD
+      </button>
+    </div>
+  </Modal>
+)}
     </section>
+    
   );
 }
 function ManageEdocProjects() {
   const [data, setData] = useState({ edocProjects: [] });
   const [query, setQuery] = useState("");
   const [notice, setNotice] = useState("");
+  const [error, setError] = useState("");
   const load = async () => setData(await api("/edoc-projects"));
   useEffect(() => {
     load();
   }, []);
+  useEffect(() => {
+  if (!notice && !error) return;
+
+  const timer = setTimeout(() => {
+    setNotice("");
+    setError("");
+  }, 5000);
+
+  return () => clearTimeout(timer);
+}, [notice, error]);
+  // const upload = async (event) => {
+  //   const file = event.target.files?.[0];
+  //   if (!file) return;
+  //   if (!file.name.toLowerCase().endsWith(".csv")) {
+  //     setNotice("Only CSV files can be imported.");
+  //     return;
+  //   }
+  //   const form = new FormData();
+  //   form.append("file", file);
+  //   const result = await api("/upload/edoc-project", {
+  //     method: "POST",
+  //     body: form,
+  //   });
+  //   setNotice(result.message || "EDOC project import completed successfully.");
+  //   event.target.value = "";
+  //   await load();
+  // };
   const upload = async (event) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-    if (!file.name.toLowerCase().endsWith(".csv")) {
-      setNotice("Only CSV files can be imported.");
-      return;
-    }
-    const form = new FormData();
-    form.append("file", file);
+  const file = event.target.files?.[0];
+  if (!file) return;
+
+  setNotice("");
+  setError("");
+
+  if (!file.name.toLowerCase().endsWith(".csv")) {
+    setError("Only CSV files can be imported.");
+    return;
+  }
+
+  const form = new FormData();
+  form.append("file", file);
+
+  try {
     const result = await api("/upload/edoc-project", {
       method: "POST",
       body: form,
     });
-    setNotice(result.message || "EDOC project import completed successfully.");
-    event.target.value = "";
-    await load();
-  };
+
+    if (result.status === "SUCCESS") {
+      setNotice("EDOC project import completed successfully.");
+      await load();
+    } else if (result.status === "Invalid CSV Header") {
+      setError("Import failed due to invalid CSV headers.");
+    } else if (result.status === "FAILED") {
+      setError("Import failed due to invalid data.");
+    } else {
+      setError("Import failed.");
+    }
+  }catch (err) {
+
+  const message =
+    typeof err?.message === "string"
+      ? err.message
+      : JSON.stringify(err);
+
+  if (
+    message.includes("Invalid CSV Header")
+  ) {
+    setError("Import failed due to invalid CSV headers.");
+  }
+  else if (
+    message.includes("FAILED") ||
+    message.includes("validationErrors")
+  ) {
+    setError("Import failed due to invalid data.");
+  }
+  else {
+    setError("Import failed.");
+  }
+}
+  //  catch (err) {
+  //   setError("Import failed.");
+  // }
+
+  event.target.value = "";
+};
   const rows = data.edocProjects.filter((item) =>
     JSON.stringify(item).toLowerCase().includes(query.toLowerCase()),
   );
@@ -1243,7 +1598,18 @@ function ManageEdocProjects() {
           </label>
         }
       />
-      {notice && <div className="alert success">{notice}</div>}
+      {/* {notice && <div className="alert success">{notice}</div>} */}
+      {notice && (
+        <div className="alert success">
+          {notice}
+        </div>
+      )}
+
+      {error && (
+        <div className="alert error">
+          {error}
+        </div>
+      )}
       <section className="panel inline-filters">
         <label>
           Search projects
