@@ -308,11 +308,15 @@ function Status({ value }) {
   return <span className={statusClass(label)}>{label || "UNKNOWN"}</span>;
 }
 function SortableHeader({ column, sortable, sort, onSort }) {
-  if (!sortable) return <th>{column.label}</th>;
+  const className = /message/i.test(column.label) ? "message-column" : undefined;
+  if (!sortable) return <th className={className}>{column.label}</th>;
 
   const isSorted = sort.key === column.key;
   return (
-    <th aria-sort={isSorted ? `${sort.direction}ending` : "none"}>
+    <th
+      className={className}
+      aria-sort={isSorted ? `${sort.direction}ending` : "none"}
+    >
       <button
         className="sort-button"
         onClick={() => onSort(column.key)}
@@ -416,7 +420,14 @@ function Table({
                   key={`${row.transactionId || row.objectId || row.userId || "row"}-${row.instanceId || row.component || index}-${index}`}
                 >
                   {tableColumns.map((column) => (
-                    <td key={column.key}>
+                    <td
+                      key={column.key}
+                      className={
+                        /message/i.test(column.label)
+                          ? "message-column"
+                          : undefined
+                      }
+                    >
                       {renderCell(row, column, onTransaction, onJson)}
                     </td>
                   ))}

@@ -9,14 +9,14 @@
   flex-direction: column;
   height: 100vh;
   overflow: hidden;
-  padding: 0 22px 18px;
+  padding: 0 16px 10px;
 }
 
 .topbar {
   background: #ffffff;
-  flex: 0 0 58px;
-  margin: 0 -22px;
-  padding: 0 22px;
+  flex: 0 0 50px;
+  margin: 0 -16px;
+  padding: 0 16px;
 }
 
 .topbar-context {
@@ -42,7 +42,7 @@
 
 .topbar .page-heading h1 {
   color: #073b68;
-  font-size: 18px;
+  font-size: 16px;
   line-height: 1.15;
 }
 
@@ -62,12 +62,14 @@
 
 .log-page-controls {
   flex: 0 0 auto;
-  padding: 0 0 2px;
+  padding: 0;
 }
 
 .metrics {
-  gap: 3px;
-  margin-bottom: 1px;
+  gap: 2px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin-bottom: 0;
+  width: 100%;
 }
 
 .metric,
@@ -77,39 +79,89 @@
 }
 
 .metric {
+  align-items: center;
   background: #ffffff;
   border-top: 2px solid #28b8ed;
-  padding: 3px 7px;
+  display: flow;
+  gap: 4px;
+  padding: 1px 5px;
 }
 
 .metric span {
-  font-size: 8px;
+  font-size: 11px;
+  line-height: 1.1;
+  white-space: nowrap;
 }
 
 .metric strong {
   color: #063e6a;
-  font-size: 16px;
+  display: inline;
+  font-size: 11px;
+  line-height: 1.1;
   margin-top: 0;
 }
 
 .filters {
+  align-items: flex-end;
   background: #fbfdff;
+  flex-wrap: nowrap;
+  gap: 4px;
   margin: 0;
-  padding: 6px 10px;
+  overflow-x: auto;
+  padding: 4px 8px;
 }
 
 .filters h2 {
-  margin: 0 0 5px;
+  flex: 0 0 auto;
+  font-size: 13px;
+  margin: 0 2px 5px 0;
+}
+
+.filters > div:first-child {
+  align-items: flex-end;
+  display: flex;
+  flex: 0 0 auto;
+  gap: 6px;
 }
 
 .filter-grid {
-  gap: 6px;
+  flex-wrap: nowrap;
+  gap: 5px;
+}
+
+.filters .filter-grid label {
+  font-size: 10px;
+  gap: 2px;
 }
 
 .filter-grid input,
 .filter-grid select {
-  min-height: 30px;
-  padding: 5px 7px;
+  font-size: 11px;
+  min-height: 26px;
+  padding: 3px 5px;
+}
+
+.filters .filter-grid input[type="date"] {
+  width: 118px;
+}
+
+.filters .filter-grid select {
+  width: 96px;
+}
+
+.filters .filter-grid.local input {
+  width: 150px;
+}
+
+.filters .filter-grid button {
+  font-size: 11px;
+  min-height: 26px;
+  padding: 4px 9px;
+}
+
+.filters .local {
+  flex: 0 0 auto;
+  padding-left: 8px;
 }
 
 .log-page-results {
@@ -140,13 +192,13 @@
   display: flex;
   flex: 0 0 auto;
   flex-direction: column;
-  margin: 2px 0 0;
+  margin: 0;
   min-height: auto;
-  padding: 8px 10px;
+  padding: 6px 8px;
 }
 
 .log-page-results > .panel .panel-title {
-  margin-bottom: 5px;
+  margin-bottom: 3px;
 }
 
 .truncated-copy-value {
@@ -166,7 +218,12 @@
 }
 
 .error-value {
-  max-width: 24ch;
+  max-width: 34ch;
+}
+
+.message-column {
+  min-width: 280px;
+  width: 280px;
 }
 
 .transaction-id-menu {
@@ -210,6 +267,14 @@
 .table-wrap {
   overscroll-behavior: contain;
   scrollbar-gutter: stable;
+}
+
+.log-page-results th {
+  padding: 6px 8px;
+}
+
+.log-page-results td {
+  padding: 6px 8px;
 }
 
 .management-page {
@@ -289,17 +354,214 @@
   background: #00649a;
 }
 
+:root {
+  color: #172554;
+  font-family: "Funnel Sans", "Segoe UI Variable", "Segoe UI", sans-serif;
+}
+
+body {
+  background: #f8fafc;
+}
+
+.app-shell {
+  background: #f8fafc;
+}
+
+.app-shell aside {
+  background: linear-gradient(180deg, #312e81 0%, #1e1b4b 100%);
+  box-shadow: 4px 0 18px #312e8126;
+}
+
+.brand {
+  border-bottom-color: #a5b4fc66;
+}
+
+.brand b {
+  background: #fbbf24;
+  color: #312e81;
+}
+
+.nav-heading {
+  color: #c7d2fe;
+}
+
+.nav-group > button:not(.nav-heading) > span {
+  background: #6366f1;
+  color: #fff;
+}
+
+.nav-group > button:hover,
+.nav-group > button.active {
+  background: linear-gradient(90deg, #4f46e5 0%, #6366f1 100%);
+}
+
+.nav-group > button.active {
+  border-left-color: #fbbf24;
+}
+
+.topbar {
+  border-bottom-color: #c7d2fe;
+  box-shadow: 0 2px 12px #312e810d;
+}
+
+.topbar-brand,
+.topbar .page-heading p,
+.page-heading p,
+.filter-grid label,
+.inline-filters label,
+.form-grid label,
+.login-card label {
+  color: #475569;
+}
+
+.topbar .page-heading h1,
+.management-page > .page-heading h1 {
+  color: #312e81;
+  font-family: Lexend, "Funnel Sans", sans-serif;
+  font-weight: 700;
+}
+
+.metric,
+.panel {
+  border-color: #c7d2fe;
+  box-shadow: 0 5px 16px #312e8114;
+}
+
+.metric {
+  background: linear-gradient(135deg, #ffffff 0%, #eef2ff 100%);
+  border-top-color: #6366f1;
+  display: flex;
+}
+
+.metric span,
+.metric strong {
+  color: #312e81;
+}
+
+.filters {
+  background: #f8faff;
+}
+
+.filter-grid input,
+.filter-grid select,
+.inline-filters input,
+.inline-filters select,
+.form-grid input,
+.form-grid select {
+  border-color: #a5b4fc;
+  background: #fff;
+}
+
+.filter-grid input:focus,
+.filter-grid select:focus,
+.inline-filters input:focus,
+.inline-filters select:focus,
+.form-grid input:focus,
+.form-grid select:focus {
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px #6366f126;
+  outline: 0;
+}
+
+.primary,
+.return-to-transactions {
+  background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%) !important;
+  border-color: #4f46e5 !important;
+}
+
+.return-to-transactions:hover {
+  background: linear-gradient(135deg, #3730a3 0%, #4f46e5 100%) !important;
+}
+
+.panel-actions button,
+.panel-title > button,
+.topbar button,
+.inline-filters button,
+.filters button,
+.dialog-actions button {
+  border-color: #a5b4fc;
+  color: #3730a3;
+}
+
+.icon-button {
+  background: #e0e7ff !important;
+  color: #4338ca !important;
+}
+
+th {
+  background: #e0e7ff;
+  color: #312e81;
+}
+
+td {
+  border-bottom-color: #e0e7ff;
+}
+
+tbody tr:hover {
+  background: #f5f3ff;
+}
+
+.link-button,
+.transaction-id {
+  color: #4f46e5;
+}
+
+.success,
+.active {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.failed,
+.fail {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.partial {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.running,
+.pending {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.transaction-id-menu {
+  border-color: #a5b4fc;
+  box-shadow: 0 8px 20px #312e8126;
+}
+
+.transaction-id-menu button:hover {
+  background: #eef2ff;
+}
+
+.modal {
+  border: 1px solid #c7d2fe;
+  box-shadow: 0 20px 48px #312e8140;
+}
+
+.modal header {
+  border-bottom-color: #c7d2fe;
+}
+
+.modal pre {
+  background: #1e1b4b;
+}
+
 @media (min-width: 1440px) {
   .main-content {
-    padding-left: 30px;
-    padding-right: 30px;
+    padding-left: 20px;
+    padding-right: 20px;
   }
 
   .topbar {
-    margin-left: -30px;
-    margin-right: -30px;
-    padding-left: 30px;
-    padding-right: 30px;
+    margin-left: -20px;
+    margin-right: -20px;
+    padding-left: 20px;
+    padding-right: 20px;
   }
 
   .topbar-context {
@@ -311,7 +573,7 @@
   }
 
   .filter-grid {
-    gap: 12px;
+    gap: 5px;
   }
 }
 
@@ -345,6 +607,7 @@
 
   .filters {
     gap: 12px;
+    overflow-x: visible;
   }
 
   .local {
